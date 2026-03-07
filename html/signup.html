@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TBIBI - Création de Compte</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="../css/stylesignup.css"> 
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo.png">
+</head>
+<body>
+
+    <div class="signup-container">
+        <div class="form-card-custom transition-hover shadow-lg">
+            <h2 class="text-center logo mb-2 text-primary-custom"><i class="bi bi-heart-pulse-fill me-2"></i> TBIBI</h2>
+            <p class="text-center text-muted mb-4 fw-bold">Créer votre Compte Sécurisé</p>
+            
+            <form id="signup-form" novalidate>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="signupFirstName" class="form-label">Prénom</label>
+                        <input type="text" class="form-control" id="signupFirstName" required placeholder="Votre Prénom">
+                        <div class="invalid-feedback">Le prénom est requis.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="signupLastName" class="form-label">Nom</label>
+                        <input type="text" class="form-control" id="signupLastName" required placeholder="Votre Nom">
+                        <div class="invalid-feedback">Le nom est requis.</div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="signupPhone" class="form-label">Numéro de Téléphone</label>
+                    <input type="tel" class="form-control" id="signupPhone" required placeholder="Ex: +216 22 123 456">
+                    <div class="invalid-feedback">Veuillez entrer un numéro de téléphone valide.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="signupEmail" class="form-label">Adresse Email</label>
+                    <input type="email" class="form-control" id="signupEmail" required placeholder="name@example.com">
+                    <div class="invalid-feedback">Veuillez entrer une adresse email valide.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="signupPassword" class="form-label">Mot de passe</label>
+                    <input type="password" class="form-control" id="signupPassword" required minlength="8" placeholder="Minimum 8 caractères">
+                    <div class="invalid-feedback">Le mot de passe doit contenir au moins 8 caractères.</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="signupRole" class="form-label">Je suis un(e) :</label>
+                    <select class="form-select" id="signupRole" required>
+                        <option value="" disabled selected>Sélectionnez votre rôle</option>
+                        <option value="patient">Patient(e)</option>
+                        <option value="doctor">Docteur(e)/Professionnel(le) de Santé</option>
+                    </select>
+                    <div class="invalid-feedback">Veuillez sélectionner votre rôle.</div>
+                </div>
+                
+                <div class="mb-4 subscription-selection">
+                    <label class="form-label fw-bold d-block">Choisissez votre Abonnement :</label>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <input type="radio" class="btn-check" name="abonnement" id="subBasic" value="basic" required>
+                            <label class="btn btn-outline-primary w-100 subscription-option" for="subBasic">
+                                <span class="fw-bold d-block">Essentiel</span>
+                                <small>60 / Accès Limité</small>
+                            </label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="radio" class="btn-check" name="abonnement" id="subPremium" value="premium" checked required>
+                            <label class="btn btn-outline-primary w-100 subscription-option" for="subPremium">
+                                <span class="fw-bold d-block">Premium</span>
+                                <small>90 TND/Mois / Accès Complet</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="invalid-feedback">Veuillez choisir un type d'abonnement.</div>
+                </div>
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                    <label class="form-check-label" for="termsCheck">
+                        J'accepte les <a href="#" class="text-decoration-none text-primary-custom fw-bold">conditions d'utilisation</a>.
+                    </label>
+                    <div class="invalid-feedback">Vous devez accepter les conditions.</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mb-3 fw-bold"> 
+                    <a href="paiement.html" style="color: inherit; text-decoration: none;">Créer mon Compte</a>
+                </button>
+                
+                <p class="text-center text-muted mt-3">
+                    Vous avez déjà un compte ? <a href="login.html" class="text-decoration-none fw-bold text-primary-custom">Se connecter</a>
+                </p>
+                
+                <p class="text-center mt-2">
+                    <a href="index.html" class="text-decoration-none text-muted small"><i class="bi bi-house-door-fill me-1"></i> Aller à la page d'accueil</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    
+    <script src="../js/signup.js"></script>
+</body>
+</html>

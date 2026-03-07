@@ -1,0 +1,70 @@
+
+:root {
+    --primary: #0068c9;
+    --primary-dark: #0053a2;
+    --success: #08b158;
+    --success-dark: #049c4d;
+    --text-dark: #1e1e1e;
+    --text-light: #555;
+    --radius: 16px;
+    --transition: 0.25s ease;
+    --strong-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    --glass-bg: rgba(255,255,255,0.55);
+    --glass-blur: blur(12px);
+}
+
+
+body {
+
+    background-image: url(../assets/background.jpg) !important;
+    background-size: cover;         
+    background-position: center;    
+    background-attachment: fixed;    
+    
+    font-family: "Inter", "Segoe UI", sans-serif;
+    color: var(--text-dark);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+
+.auth-container {
+    min-height: 100vh;
+ 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.auth-container .card {
+    
+    max-width: 450px !important; 
+    border-radius: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: none;
+    box-shadow: var(--strong-shadow);
+    width: 100%;
+}
+
+.site-logo {
+  
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--primary) !important;
+}
+
+.btn-primary-theme {
+
+    background: var(--primary) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-primary-theme:hover {
+    background: var(--primary-dark) !important;
+}
+
+.form-floating > .form-control {
+    padding: 1rem 0.75rem;
+}

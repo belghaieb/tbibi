@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TBIBI - Paiement Sécurisé</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="../css/stylepaiement.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/logo.png">
+
+</head>
+<body>
+
+    <div class="payment-container">
+        
+        <div class="card p-4 p-md-5 shadow-lg transition-hover" style="max-width: 500px; width: 100%;">
+            <h3 class="text-center logo mb-4">Paiement Sécurisé <span class="text-primary-custom">TBIBI</span></h3>
+            
+            <div class="credit-card-display">
+                <div class="chip"></div>
+                <div class="card-number-display mb-3" id="display-card-number">XXXX XXXX XXXX XXXX</div>
+                <div class="card-details-row">
+                    <div>
+                        <small class="d-block">Nom du titulaire</small>
+                        <span class="card-holder-name" id="display-card-name">NOM PRÉNOM</span>
+                    </div>
+                    <div>
+                        <small class="d-block">Expire fin</small>
+                        <span class="card-expiry-date" id="display-card-expiry">MM/AA</span>
+                    </div>
+                </div>
+                <i class="bi bi-credit-card-fill card-type-icon" id="card-logo-type"></i>
+            </div>
+            
+            <div class="alert alert-info text-center fw-bold mb-4">
+                Montant dû : <span class="h5 mb-0 text-primary-custom">99.00 TND</span>
+            </div>
+            
+            <form id="payment-form" novalidate>
+                
+                <div class="mb-3">
+                    <label for="cardName" class="form-label">Nom sur la carte</label>
+                    <input type="text" class="form-control" id="cardName" required placeholder="Nom et Prénom du titulaire">
+                    <div class="invalid-feedback">Le nom est requis.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cardNumber" class="form-label">Numéro de carte</label>
+                    <input type="text" class="form-control" id="cardNumber" required placeholder="XXXX XXXX XXXX XXXX" maxlength="19">
+                    <div class="invalid-feedback">Veuillez entrer un numéro de carte valide (16 chiffres).</div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="cardExpiry" class="form-label">Date d'expiration</label>
+                        <input type="text" class="form-control" id="cardExpiry" required placeholder="MM/AA" maxlength="5">
+                        <div class="invalid-feedback">Format MM/AA requis.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="cardCvv" class="form-label">Code CVV</label>
+                        <input type="text" class="form-control" id="cardCvv" required placeholder="XXX" maxlength="4">
+                        <div class="invalid-feedback">CVV à 3 ou 4 chiffres requis.</div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary-custom w-100 mb-3 fw-bold">
+                    <i class="bi bi-lock-fill me-2"></i> Payer 99.00 TND
+                </button>
+                
+                <p class="text-center mt-3">
+                    <a href="../index.html" class="text-decoration-none text-muted small">Annuler et retourner à l'accueil</a>
+                </p>
+                
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <script>
+        // Active la validation native de Bootstrap sur le formulaire
+        (function () {
+            'use strict'
+            var form = document.getElementById('payment-form')
+            
+            form.addEventListener('submit', function (event) {
+                // Si le formulaire n'est pas valide nativement
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                } else {
+                    // Si tout est valide, vous pouvez envoyer les données ici
+                    alert('Paiement simulé avec succès ! Merci pour votre achat.')
+                    event.preventDefault() // Empêche l'envoi réel pour la démo
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })()
+
+        // =========================================================================
+        // 1. MISE À JOUR VISUELLE DE LA CARTE EN TEMPS RÉEL (MEILLEURE UX)
+        // =========================================================================
+        
+        // Champs d'entrée
+        const inputCardNumber = document.getElementById('cardNumber');
+        const inputCardName = document.getElementById('cardName');
+        const inputCardExpiry = document.getElementById('cardExpiry');
+
+        // Éléments d'affichage de la carte virtuelle
+        const displayCardNumber = document.getElementById('display-card-number');
+        const displayCardName = document.getElementById('display-card-name');
+        const displayCardExpiry = document.getElementById('display-card-expiry');
+        const cardLogoType = document.getElementById('card-logo-type');
+
+        // Mappage des types de cartes (à adapter selon les règles de votre banque)
+        // Note: La détection de carte est complexe, ceci est une simplification basée sur le premier chiffre.
+        const cardTypeRules = {
+            '4': { name: 'VISA', color: 'text-danger' },
+            '5': { name: 'Mastercard', color: 'text-primary' },
+            '6': { name: 'Discover', color: 'text-warning' },
+            // Autres types peuvent être ajoutés ici
+        };
+
+        // Fonction pour mettre à jour le numéro de carte avec des espaces
+        inputCardNumber.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Retire tout ce qui n'est pas un chiffre
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formattedValue += ' ';
+                }
+                formattedValue += value[i];
+            }
+            e.target.value = formattedValue;
+            
+            // Mise à jour de l'affichage
+            displayCardNumber.textContent = formattedValue.padEnd(19, 'X').substring(0, 19);
+
+            // Détection du type de carte
+            const firstDigit = value.charAt(0);
+            if (cardTypeRules[firstDigit]) {
+                cardLogoType.className = `bi bi-credit-card-fill ${cardTypeRules[firstDigit].color} card-type-icon`;
+            } else {
+                cardLogoType.className = `bi bi-credit-card-fill text-secondary card-type-icon`;
+            }
+        });
+
+        // Mise à jour du nom
+        inputCardName.addEventListener('input', function(e) {
+            displayCardName.textContent = e.target.value.toUpperCase() || 'NOM PRÉNOM';
+        });
+
+        // Mise à jour de la date d'expiration avec formatage MM/AA
+        inputCardExpiry.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+            displayCardExpiry.textContent = value.padEnd(5, 'A').substring(0, 5) || 'MM/AA';
+        });
+
+        // =========================================================================
+        // 2. VALIDATION SUPPLÉMENTAIRE DE LA DATE
+        // =========================================================================
+
+        // Validation simple pour s'assurer que la carte n'est pas expirée
+        inputCardExpiry.addEventListener('blur', function(e) {
+            const expiryValue = e.target.value;
+            const feedback = e.target.nextElementSibling; // Le div .invalid-feedback
+            
+            if (expiryValue.length === 5 && expiryValue.includes('/')) {
+                const parts = expiryValue.split('/');
+                const month = parseInt(parts[0], 10);
+                const year = 2000 + parseInt(parts[1], 10); // Assumer 20xx
+                
+                const currentDate = new Date();
+                const currentYear = currentDate.getFullYear();
+                const currentMonth = currentDate.getMonth() + 1; // getMonth() est basé sur 0
+                
+                let isExpired = false;
+
+                if (year < currentYear) {
+                    isExpired = true;
+                } else if (year === currentYear && month < currentMonth) {
+                    isExpired = true;
+                }
+
+                if (isExpired) {
+                    e.target.setCustomValidity("La carte est expirée.");
+                    feedback.textContent = "Cette carte semble être expirée.";
+                } else {
+                    e.target.setCustomValidity(""); // Réinitialiser le message d'erreur
+                    feedback.textContent = "Format MM/AA requis."; // Message par défaut
+                }
+            } else {
+                e.target.setCustomValidity("Incomplet");
+            }
+        });
+    </script>
+    </body>
+</html>

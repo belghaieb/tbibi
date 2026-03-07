@@ -1,0 +1,99 @@
+/* File: ../css/stylesignup.css */
+
+/* --- Custom Variables for TBIBI Theme --- */
+:root {
+    --primary-custom: #007bff; /* Medical Blue */
+    --success-custom: #28a745; 
+    --light-bg: #f8f9fa; 
+    --card-bg: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.2); /* Slightly darker shadow for contrast */
+}
+
+/* --- Global & Layout Reset (With Background Image) --- */
+/* File: ../css/stylesignup.css (UPDATED for Right Alignment) */
+
+/* --- Global & Layout Reset (With Background Image) --- */
+body {
+    background-image: url('../assets/depositphotos_515102596-stock-illustration-registration-form-cute-cartoon-man.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 200vh;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end ; 
+    padding: 200px;
+    align-items: flex-start;
+}
+
+/* --- Container and Card Styling --- */
+.signup-container {
+    width: 100%;
+    max-width: 750px; 
+    /* 🚨 CHANGE 2: Add right margin for spacing off the edge */
+    margin-right: 5%; 
+    /* Ensure no residual left margin interferes */
+    margin-left: 0; 
+}
+
+.form-card-custom {
+    /* ... rest of the form-card-custom styles ... */
+    background-color: rgba(255, 255, 255, 0.95); 
+    padding: 40px;
+    border-radius: 12px;
+    width: 100%;
+    box-shadow: 0 8px 30px var(--shadow-color); 
+    transition: transform 0.3s ease-in-out;
+}
+/* ... rest of the CSS file ... */
+.form-card-custom:hover {
+    transform: translateY(-3px); /* Subtle lift effect */
+}
+
+
+/* Custom colors matching the theme */
+.text-primary-custom {
+    color: var(--primary-custom) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-custom);
+    border-color: var(--primary-custom);
+    transition: background-color 0.2s ease;
+}
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Subscription buttons styling */
+.subscription-option {
+    border-radius: 8px;
+    padding: 10px 15px;
+    text-align: center;
+    line-height: 1.2;
+    font-size: 0.9rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.btn-check:checked + .subscription-option {
+    background-color: var(--primary-custom);
+    color: white;
+    border-color: var(--primary-custom);
+}
+
+/* Logo specific styling */
+.logo {
+    font-weight: 800;
+    font-size: 2.5rem;
+}
+
+/* Input focus color to match primary theme */
+.form-control:focus, .form-select:focus, .btn-check:focus + .subscription-option {
+    border-color: var(--primary-custom);
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}

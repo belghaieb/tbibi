@@ -1,0 +1,119 @@
+/* File: ../css/stylelogin.css */
+
+/* --- Custom Variables (Keep these at the top) --- */
+:root {
+    --primary: #0068c9;
+    --primary-dark: #0053a2;
+    --success: #08b158;
+    --success-dark: #049c4d;
+    --text-dark: #1e1e1e;
+    --text-light: #555;
+    --radius: 16px;
+    --transition: 0.25s ease;
+    --strong-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    --glass-bg: rgba(255,255,255,0.55);
+    --glass-blur: blur(12px);
+    --input-bg: #fff; /* Explicit white background for inputs */
+}
+
+/* --- Base Styles --- */
+body {
+    background-image: url(../assets/background.jpg) !important;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; 
+    font-family: "Inter", "Segoe UI", sans-serif;
+    color: var(--text-dark);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    margin: 0; /* Ensure no default margin pushes content */
+}
+
+
+/* --- Custom Login Layout --- */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px; /* Padding for small screens */
+}
+.auth-card {
+    max-width: 450px !important; 
+    border-radius: var(--radius);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle white border for glass effect */
+    box-shadow: var(--strong-shadow);
+    width: 100%;
+}
+
+/* --- Custom Elements --- */
+.site-logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--primary) !important;
+}
+
+/* Input Fields */
+.form-control {
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    border: 1px solid #ddd;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.25rem rgba(0, 104, 201, 0.25); /* Primary color box shadow */
+}
+
+/* Form Floating Labels */
+.form-floating > .form-control {
+    padding: 1rem 0.75rem;
+}
+.form-floating > label {
+    color: var(--text-light);
+}
+
+
+/* Buttons */
+.btn-primary-theme {
+    background: var(--primary) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600;
+    transition: var(--transition);
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+}
+.btn-primary-theme:hover {
+    background: var(--primary-dark) !important;
+    transform: translateY(-1px); /* Subtle lift effect */
+}
+
+
+/* Success Alert Style (for the JS message on mot_de_pass_oublier.html) */
+.alert-success {
+    background-color: #e6fff0; /* Lighter success background */
+    border-color: var(--success);
+    color: var(--text-dark);
+    border-radius: var(--radius);
+}
+.alert-success .alert-heading {
+    color: var(--success-dark);
+    font-weight: 700;
+}
+.alert-success .btn {
+    /* Style the button inside the success message */
+    background-color: var(--success);
+    border-color: var(--success);
+}
+
+/* Responsive adjustment for padding on smaller screens */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 30px 20px !important;
+        margin: 10px;
+    }
+}

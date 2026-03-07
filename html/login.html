@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - TBIBI</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+          rel="stylesheet" 
+          crossorigin="anonymous">
+          
+    <link rel="stylesheet" href="../css/stylelogin.css"> 
+</head>
+<body >
+    
+    <div class="auth-container">
+        <div class="card shadow-lg p-md-5 p-4 text-center auth-card">
+            
+            <h1 class="site-logo mb-2 text-primary-theme">TBIBI</h1>
+            <p class="mb-4 text-muted">Accédez à votre clinique virtuelle.</p>
+
+            <form id="login-form">
+                
+                <input type="hidden" id="plan-input" name="plan" value="">
+                <input type="hidden" id="price-input" name="price" value="">
+
+                <div class="form-floating mb-3 text-start">
+                    <input type="email" class="form-control" id="email" placeholder=" " required>
+                    <label for="email">Adresse Email</label>
+                </div>
+                
+                <div class="form-floating mb-3 text-start">
+                    <input type="password" class="form-control" id="password" placeholder=" " required>
+                    <label for="password">Mot de passe</label>
+                </div>
+                
+                <div class="text-end mb-4">
+                    <a href="modpass.html" class="text-primary small">Mot de passe oublié ?</a>
+                </div>
+                <button type="submit" class="btn btn-primary-theme w-100 btn-lg">  <a href="main.html">supposé inscrit</a>Se Connecter</button>
+            </form>
+            
+            <hr class="my-4">
+            
+            <p class="text-center text-muted">
+                Nouveau chez TBIBI ? 
+                <a href="signup.html" id="signup-link" class="text-success fw-bold">Créez un compte</a>
+            </p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+            crossorigin="anonymous"></script>
+    <script src="../js/scripts1.js"></script>
+</body>
+</html>w
