@@ -1,0 +1,260 @@
+/* Signup page theme and layout for TBIBI. */
+:root {
+    --primary-custom: #0a66c2;
+    --primary-deep: #073a70;
+    --accent-custom: #19a974;
+    --surface: rgba(255, 255, 255, 0.94);
+    --surface-strong: #ffffff;
+    --soft-border: rgba(15, 23, 42, 0.08);
+    --shadow-color: rgba(15, 23, 42, 0.12);
+    --text-dark: #102033;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background:
+        radial-gradient(circle at top left, rgba(10, 102, 194, 0.20), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(25, 169, 116, 0.16), transparent 28%),
+        linear-gradient(135deg, #f5f9ff 0%, #eef4fb 100%);
+}
+
+.signup-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(420px, 760px);
+    gap: 2rem;
+    align-items: center;
+    padding: 3rem;
+}
+
+.signup-hero-panel {
+    color: var(--text-dark);
+    padding: 1rem 0 1rem 1rem;
+    max-width: 560px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.85rem;
+    margin-bottom: 1rem;
+    border-radius: 999px;
+    background: rgba(10, 102, 194, 0.12);
+    color: var(--primary-deep);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+}
+
+.hero-title {
+    font-size: clamp(2.2rem, 4vw, 4rem);
+    line-height: 1.02;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+}
+
+.hero-copy {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #4b5a6a;
+    margin-bottom: 1.75rem;
+}
+
+.hero-points {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.hero-point {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    padding: 1rem 1rem;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.hero-point i {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: rgba(10, 102, 194, 0.12);
+    color: var(--primary-custom);
+    flex: 0 0 auto;
+    font-size: 1.1rem;
+}
+
+.hero-point strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--text-dark);
+}
+
+.hero-point span {
+    display: block;
+    color: #556575;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.signup-container {
+    width: 100%;
+    max-width: 760px;
+    margin-left: auto;
+}
+
+.form-card-custom {
+    background: var(--surface);
+    backdrop-filter: blur(14px);
+    padding: 2.5rem;
+    border-radius: 28px;
+    width: 100%;
+    border: 1px solid var(--soft-border);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+}
+
+.signup-card-header {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.text-primary-custom {
+    color: var(--primary-custom) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-custom);
+    border-color: var(--primary-custom);
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #08559f;
+    border-color: #08559f;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(10, 102, 194, 0.22);
+}
+
+.signup-submit-btn {
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
+    font-size: 1rem;
+}
+
+.subscription-option {
+    border-radius: 16px;
+    padding: 1rem 1.1rem;
+    text-align: center;
+    line-height: 1.2;
+    font-size: 0.95rem;
+    min-height: 86px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid rgba(10, 102, 194, 0.25);
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--text-dark);
+}
+
+.btn-check:checked + .subscription-option {
+    background: linear-gradient(135deg, var(--primary-custom), var(--primary-deep));
+    color: white;
+    border-color: var(--primary-custom);
+    box-shadow: 0 14px 30px rgba(10, 102, 194, 0.22);
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 2.25rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: 14px;
+    border-color: rgba(10, 102, 194, 0.18);
+    min-height: 50px;
+}
+
+.form-control:focus,
+.form-select:focus,
+.btn-check:focus + .subscription-option {
+    border-color: var(--primary-custom);
+    box-shadow: 0 0 0 0.22rem rgba(10, 102, 194, 0.18);
+}
+
+.doctor-docs-note {
+    border: 1px dashed rgba(10, 102, 194, 0.42);
+    background: linear-gradient(180deg, rgba(241, 247, 255, 0.95), rgba(233, 243, 255, 0.88));
+    border-radius: 18px;
+    padding: 16px;
+}
+
+.patient-files-note {
+    border: 1px dashed rgba(25, 169, 116, 0.46);
+    background: linear-gradient(180deg, rgba(237, 251, 245, 0.95), rgba(228, 247, 239, 0.9));
+    border-radius: 18px;
+    padding: 16px;
+}
+
+.patient-files-note .form-control {
+    background-color: var(--surface-strong);
+}
+
+.doctor-docs-note .btn {
+    border-radius: 999px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #304252;
+}
+
+.signup-footer-links a {
+    transition: color 0.2s ease;
+}
+
+.signup-footer-links a:hover {
+    color: var(--primary-deep) !important;
+}
+
+@media (max-width: 1199px) {
+    .signup-shell {
+        grid-template-columns: 1fr;
+        padding: 2rem;
+    }
+
+    .signup-hero-panel {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .signup-container {
+        max-width: 820px;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .signup-shell {
+        padding: 1rem;
+        gap: 1.25rem;
+    }
+
+    .form-card-custom {
+        padding: 1.3rem;
+        border-radius: 22px;
+    }
+
+    .logo {
+        font-size: 2rem;
+    }
+}

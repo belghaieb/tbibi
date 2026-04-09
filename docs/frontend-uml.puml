@@ -1,0 +1,113 @@
+@startuml
+title TBIBI Frontend Architecture
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam defaultTextAlignment center
+
+package "TBIBI Frontend" {
+  [index.html\nLanding] as Index
+  [login.html\nLogin] as Login
+  [signup.html\nSignup] as Signup
+  [paiement.html\nPayment] as Payment
+  [main.html\nDashboard] as Main
+  [manage-account.html\nAccount] as Account
+  [assistant.html\nAssistant] as Assistant
+
+  component "login-page.js" as LoginJS
+  component "signup.js" as SignupJS
+  component "paiement-page.js" as PaymentJS
+  component "dashboard-page.js" as DashboardJS
+  component "manage-account-page.js" as AccountJS
+  component "assistant-chat.js" as AssistantJS
+
+  component "Shared runtime\n- window.TBIBI_API_BASE\n- localStorage tokens\n- URL query params" as Runtime
+}
+
+package "Backend API" {
+  component "/auth/login" as AuthLogin
+  component "/auth/register" as AuthRegister
+  component "/auth/forgot-password" as AuthForgot
+  component "/subscriptions/checkout-session" as Checkout
+  component "/subscriptions/me" as SubMe
+  component "/users/me" as UsersMe
+  component "/users/me/password" as UsersPassword
+  component "/doctors" as Doctors
+  component "/chats/{doctorId}/messages" as Chats
+  component "/medical-files" as MedicalFiles
+  component "/medical-files/{id}/download" as MedicalFileDownload
+  component "/assistant/message" as AssistantApi
+}
+
+package "External Services" {
+  component "Bootstrap" as Bootstrap
+  component "Overpass API\n(OpenStreetMap)" as Overpass
+  component "Geolocation API" as Geo
+}
+
+Index --> Login : CTA
+Index --> Signup : CTA
+Index --> Payment : plan/price
+
+Login --> LoginJS
+Signup --> SignupJS
+Payment --> PaymentJS
+Main --> DashboardJS
+Account --> AccountJS
+Assistant --> AssistantJS
+
+LoginJS --> Runtime
+SignupJS --> Runtime
+PaymentJS --> Runtime
+DashboardJS --> Runtime
+AccountJS --> Runtime
+AssistantJS --> Runtime
+
+LoginJS --> AuthLogin : POST email/password
+SignupJS --> AuthRegister : POST multipart form
+SignupJS --> Checkout : redirect after signup
+PaymentJS --> Checkout : POST planCode/amountHint
+AccountJS --> UsersMe : GET/PUT profile
+AccountJS --> UsersPassword : PUT password
+AccountJS --> SubMe : GET subscription
+DashboardJS --> Doctors : GET doctor list
+DashboardJS --> Chats : GET/POST messages
+DashboardJS --> MedicalFiles : GET/POST files
+DashboardJS --> MedicalFileDownload : GET file blob
+DashboardJS --> Overpass : nearby medical places
+DashboardJS --> Geo : location permission
+AssistantJS --> AssistantApi : POST chat message
+LoginJS --> AuthForgot : optional recovery flow
+
+DashboardJS --> Bootstrap
+AccountJS --> Bootstrap
+AssistantJS --> Bootstrap
+LoginJS --> Bootstrap
+SignupJS --> Bootstrap
+PaymentJS --> Bootstrap
+
+note right of Runtime
+Shared contract used by all pages:
+- API base URL override
+- Access token and refresh token in localStorage
+- query params plan and price
+end note
+
+note bottom of DashboardJS
+Dashboard responsibilities:
+- doctor list and selection
+- chat UI
+- medical file upload and preview
+- nearby services search
+- emergency modal
+end note
+
+note bottom of SignupJS
+Signup responsibilities:
+- validate names, phone, passwords
+- handle patient vs doctor fields
+- send multipart registration payload
+end note
+
+@enduml

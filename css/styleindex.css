@@ -1,0 +1,406 @@
+:root {
+    --primary: #0a5eb8;
+    --primary-dark: #083d7a;
+    --success: #17a66a;
+    --success-dark: #0c8c57;
+    --text-dark: #1a2533;
+    --text-light: #5c6672;
+    --radius: 18px;
+    --transition: 0.28s ease;
+    --soft-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+    --strong-shadow: 0 24px 55px rgba(15, 23, 42, 0.15);
+    --card-bg: rgba(255, 255, 255, 0.92);
+}
+
+body {
+    font-family: "IBM Plex Sans", sans-serif;
+    color: var(--text-dark);
+    line-height: 1.7;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.bg-light-custom {
+    background: linear-gradient(160deg, #f2f8ff 0%, #f5fff9 55%, #f4f7fb 100%) !important;
+}
+
+.bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: -1;
+    opacity: 0.45;
+}
+
+.orb-1 {
+    width: 360px;
+    height: 360px;
+    background: rgba(10, 94, 184, 0.35);
+    top: -120px;
+    left: -120px;
+}
+
+.orb-2 {
+    width: 320px;
+    height: 320px;
+    background: rgba(23, 166, 106, 0.28);
+    bottom: -120px;
+    right: -80px;
+}
+
+.navbar {
+    backdrop-filter: blur(14px);
+    background: rgba(8, 61, 122, 0.9) !important;
+    box-shadow: 0 10px 28px rgba(8, 61, 122, 0.2);
+}
+
+.navbar-brand.logo {
+    font-family: "Sora", sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.navbar-nav .nav-link:hover {
+    opacity: 0.85;
+}
+
+.header-custom {
+    padding: 5.5rem 1rem 4.2rem;
+}
+
+.hero-chip {
+    display: inline-block;
+    background: rgba(10, 94, 184, 0.12);
+    color: var(--primary-dark);
+    padding: 0.48rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.9rem;
+}
+
+.header-custom .logo {
+    font-family: "Sora", sans-serif;
+    font-size: clamp(2.1rem, 4vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+.subtitle {
+    max-width: 690px;
+    font-size: 1.08rem;
+}
+
+.hero-cta-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.main-btn {
+    background: linear-gradient(135deg, var(--success), var(--success-dark));
+    border: 0;
+    border-radius: 14px;
+    padding: 0.9rem 2.3rem;
+    font-size: 1.05rem;
+    box-shadow: 0 12px 28px rgba(23, 166, 106, 0.34);
+    transition: var(--transition);
+}
+
+.main-btn:hover {
+    transform: translateY(-3px);
+}
+
+.hero-metrics {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+}
+
+.hero-metric-item {
+    min-width: 135px;
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid rgba(10, 94, 184, 0.15);
+    border-radius: 13px;
+    padding: 0.65rem 0.8rem;
+}
+
+.hero-metric-item strong {
+    display: block;
+    color: var(--primary-dark);
+    font-family: "Sora", sans-serif;
+}
+
+.hero-metric-item span {
+    font-size: 0.84rem;
+    color: var(--text-light);
+}
+
+.hero-preview-card {
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.96), rgba(236, 249, 242, 0.9));
+    border: 1px solid rgba(10, 94, 184, 0.1);
+    border-radius: 24px;
+    box-shadow: var(--strong-shadow);
+    overflow: hidden;
+}
+
+.hero-preview-top {
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid rgba(10, 94, 184, 0.1);
+    display: flex;
+    gap: 0.45rem;
+}
+
+.dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: #aac8ec;
+}
+
+.hero-preview-body {
+    padding: 1.1rem 1.1rem 1.2rem;
+}
+
+.hero-preview-body h5 {
+    font-family: "Sora", sans-serif;
+    margin-bottom: 0.95rem;
+}
+
+.mission-panel {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 18px;
+    box-shadow: var(--soft-shadow);
+    padding: 1.3rem 1.2rem;
+    text-align: center;
+}
+
+.mission-panel h3 {
+    font-family: "Sora", sans-serif;
+    font-size: 1.35rem;
+    margin-bottom: 0.45rem;
+}
+
+.mission-panel p {
+    margin: 0;
+    color: var(--text-light);
+}
+
+.preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(10, 94, 184, 0.08);
+    border-radius: 12px;
+    padding: 0.55rem 0.7rem;
+    margin-bottom: 0.55rem;
+}
+
+.preview-row span {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.preview-row strong {
+    font-size: 0.88rem;
+    color: var(--primary-dark);
+}
+
+.feature .card {
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: var(--soft-shadow);
+    transition: var(--transition);
+}
+
+.feature .card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--strong-shadow);
+}
+
+.feature-icon {
+    font-size: 2.8rem;
+    color: var(--primary);
+}
+
+.feature-title {
+    font-family: "Sora", sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+#pricing .card {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: var(--soft-shadow);
+    transition: var(--transition);
+}
+
+#pricing .card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--strong-shadow);
+}
+
+.pricing-card-featured {
+    transform: scale(1.02);
+    box-shadow: 0 22px 44px rgba(23, 166, 106, 0.2) !important;
+}
+
+#pricing .card-header {
+    padding: 1.15rem;
+    font-family: "Sora", sans-serif;
+    font-size: 1.05rem;
+}
+
+.list-features li {
+    margin-bottom: 0.6rem;
+}
+
+.how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.how-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 18px;
+    box-shadow: var(--soft-shadow);
+    padding: 1rem;
+}
+
+.how-card h5 {
+    font-family: "Sora", sans-serif;
+    font-size: 1rem;
+    margin-bottom: 0.45rem;
+}
+
+.how-card p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.94rem;
+}
+
+.step-badge {
+    width: 1.9rem;
+    height: 1.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(10, 94, 184, 0.12);
+    color: var(--primary-dark);
+    font-weight: 800;
+    margin-bottom: 0.6rem;
+}
+
+.btn-success-custom {
+    background: linear-gradient(135deg, var(--success), var(--success-dark)) !important;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.btn-success-custom:hover {
+    transform: translateY(-1px);
+}
+
+.trusted-strip {
+    margin: 1.2rem auto 0;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 16px;
+    box-shadow: var(--soft-shadow);
+    padding: 0.9rem 1rem;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.trusted-strip i {
+    color: var(--primary);
+}
+
+.accordion-item {
+    border-radius: var(--radius) !important;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: var(--soft-shadow);
+    margin-bottom: 0.8rem;
+    overflow: hidden;
+}
+
+.accordion-button {
+    padding: 1.15rem;
+    font-family: "Sora", sans-serif;
+    font-weight: 700;
+}
+
+.accordion-button:not(.collapsed) {
+    background: #e9f4ff !important;
+    color: var(--primary-dark);
+}
+
+.accordion-body {
+    color: var(--text-light);
+}
+
+.footer-custom {
+    background: #ffffff;
+    border-top: 1px solid #e4eaf3;
+    padding: 2rem 0;
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 991px) {
+    .header-custom {
+        text-align: center;
+    }
+
+    .header-custom .text-start {
+        text-align: center !important;
+    }
+
+    .hero-cta-group,
+    .hero-metrics {
+        justify-content: center;
+    }
+
+    .pricing-card-featured {
+        transform: none;
+    }
+
+    .how-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-chip {
+        font-size: 0.72rem;
+    }
+
+    .main-btn,
+    .hero-cta-group .btn {
+        width: 100%;
+    }
+}

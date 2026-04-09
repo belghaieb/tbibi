@@ -1,0 +1,93 @@
+flowchart LR
+  %% TBIBI Frontend Architecture - Mermaid version
+
+  subgraph FE[TBIBI Frontend]
+    Index[index.html\nLanding]
+    Login[login.html\nLogin]
+    Signup[signup.html\nSignup]
+    Payment[paiement.html\nPayment]
+    Main[main.html\nDashboard]
+    Account[manage-account.html\nAccount]
+    Assistant[assistant.html\nAssistant]
+
+    LoginJS[login-page.js]
+    SignupJS[signup.js]
+    PaymentJS[paiement-page.js]
+    DashboardJS[dashboard-page.js]
+    AccountJS[manage-account-page.js]
+    AssistantJS[assistant-chat.js]
+
+    Runtime[[Shared runtime\nAPI base URL\nlocalStorage tokens\nURL query params]]
+  end
+
+  subgraph API[Backend API]
+    AuthLogin[/auth/login/]
+    AuthRegister[/auth/register/]
+    AuthForgot[/auth/forgot-password/]
+    Checkout[/subscriptions/checkout-session/]
+    SubMe[/subscriptions/me/]
+    UsersMe[/users/me/]
+    UsersPassword[/users/me/password/]
+    Doctors[/doctors/]
+    Chats[/chats/{doctorId}/messages/]
+    MedicalFiles[/medical-files/]
+    MedicalFileDownload[/medical-files/{id}/download/]
+    AssistantApi[/assistant/message/]
+  end
+
+  subgraph EXT[External Services]
+    Bootstrap[Bootstrap]
+    Overpass[Overpass API\nOpenStreetMap]
+    Geo[Geolocation API]
+  end
+
+  Index --> Login
+  Index --> Signup
+  Index --> Payment
+
+  Login --> LoginJS
+  Signup --> SignupJS
+  Payment --> PaymentJS
+  Main --> DashboardJS
+  Account --> AccountJS
+  Assistant --> AssistantJS
+
+  LoginJS --> Runtime
+  SignupJS --> Runtime
+  PaymentJS --> Runtime
+  DashboardJS --> Runtime
+  AccountJS --> Runtime
+  AssistantJS --> Runtime
+
+  LoginJS --> AuthLogin
+  LoginJS --> AuthForgot
+  SignupJS --> AuthRegister
+  SignupJS --> Checkout
+  PaymentJS --> Checkout
+
+  DashboardJS --> Doctors
+  DashboardJS --> Chats
+  DashboardJS --> MedicalFiles
+  DashboardJS --> MedicalFileDownload
+  DashboardJS --> Overpass
+  DashboardJS --> Geo
+
+  AccountJS --> UsersMe
+  AccountJS --> UsersPassword
+  AccountJS --> SubMe
+
+  AssistantJS --> AssistantApi
+
+  LoginJS -. uses .-> Bootstrap
+  SignupJS -. uses .-> Bootstrap
+  PaymentJS -. uses .-> Bootstrap
+  DashboardJS -. uses .-> Bootstrap
+  AccountJS -. uses .-> Bootstrap
+  AssistantJS -. uses .-> Bootstrap
+
+  Runtime ---|shared by| LoginJS
+  Runtime ---|shared by| SignupJS
+  Runtime ---|shared by| PaymentJS
+  Runtime ---|shared by| DashboardJS
+  Runtime ---|shared by| AccountJS
+  Runtime ---|shared by| AssistantJS

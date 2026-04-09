@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TBIBI - Assistant IA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="page-shell">
+    <header class="main-header p-3 bg-white shadow-sm border-bottom">
+        <div class="d-flex justify-content-between align-items-center container-fluid">
+            <h1 class="logo text-primary fw-bold mb-0">TBIBI</h1>
+            <nav class="d-flex flex-wrap gap-2 justify-content-end">
+                <a href="main.html" class="btn btn-outline-secondary fw-bold"><i class="bi bi-arrow-left me-1"></i> Tableau de bord</a>
+                <a href="manage-account.html" class="btn btn-outline-primary fw-bold"><i class="bi bi-person-gear me-1"></i> Mon compte</a>
+                <a href="login.html" class="btn btn-outline-secondary fw-bold" id="logout-link">Déconnexion</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container py-5">
+        <section class="page-hero text-center">
+            <div class="eyebrow mb-2">Assistant conversationnel</div>
+            <h2 class="display-6 fw-bold mb-3">Un espace de chat pour guider vos prochaines actions.</h2>
+            <p class="text-muted mx-auto" style="max-width: 780px;">Posez vos questions pour obtenir une orientation médicale générale et une aide de navigation sur la plateforme.</p>
+        </section>
+
+        <div class="assistant-card p-3 p-md-4">
+            <div class="assistant-chat-window">
+                <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
+                    <div>
+                        <h5 class="fw-bold mb-1">Assistant TBIBI</h5>
+                        <div class="text-muted small">Support de navigation et aide générale</div>
+                    </div>
+                    <span class="badge bg-secondary-subtle text-secondary">Assistant actif</span>
+                </div>
+
+                <div class="assistant-message-stream" id="assistant-message-stream">
+                    <div class="assistant-message bot">Bonjour. Je peux vous orienter vers votre compte, les services proches et le tableau de bord.</div>
+                    <div class="assistant-message bot">Essayez par exemple: “ouvrir mon compte”, “chercher une pharmacie”, ou “comment contacter un médecin ?”.</div>
+                </div>
+
+                <form id="assistant-form" class="input-group mt-3">
+                    <input type="text" class="form-control" id="assistant-input" placeholder="Écrivez votre question..." autocomplete="off">
+                    <button class="btn btn-primary fw-bold" type="submit"><i class="bi bi-send-fill me-1"></i> Envoyer</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+        document.getElementById('logout-link')?.addEventListener('click', () => {
+            try {
+                localStorage.removeItem('tbibi_access_token');
+                localStorage.removeItem('tbibi_refresh_token');
+                localStorage.removeItem('tbibi_session');
+                localStorage.removeItem('tbibi_user');
+            } catch (e) { /* ignore */ }
+        });
+    </script>
+    <script src="../js/assistant-chat.js"></script>
+</body>
+</html>
