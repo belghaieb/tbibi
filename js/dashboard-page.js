@@ -1,608 +1,560 @@
-const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8080/api';
-const ACCESS_TOKEN_KEY = 'tbibi_access_token';
-const REFRESH_TOKEN_KEY = 'tbibi_refresh_token';
-const searchRadiusMeters = 3000;
+// ─────────────────────────────────────────────────────────────
+// dashboard-page.js — TBIBI main dashboard
+// Handles both PATIENT and DOCTOR roles in the same page.
+//
+// PATIENT sees:
+//   Left   → list of available doctors to contact
+//   Middle → personal medical files + nearby medical map
+//   Right  → selected doctor profile + chat + book appointment
+//
+// DOCTOR sees:
+//   Left   → list of patients who booked appointments
+//   Middle → appointment cards with confirm / cancel actions
+//   Right  → chat with selected patient
+// ─────────────────────────────────────────────────────────────
 
-let doctorsCache = [];
-let currentDoctorId = null;
+const API_BASE_URL      = window.TBIBI_API_BASE || 'http://localhost:8084/api';
+const ACCESS_TOKEN_KEY  = 'tbibi_access_token';
+const searchRadiusMeters = 3000;
+const TUNIS_FALLBACK_LAT = 36.8065;
+const TUNIS_FALLBACK_LNG = 10.1815;
+
+let doctorsCache   = [];
+let allAppointments = [];
+let currentPartnerId  = null;
 let currentConversationMessages = [];
 let lastMedicalBlobUrl = null;
+let currentUserId  = null;
+let stompClient    = null;
+let nearbyMap      = null;
+let nearbyMapMarkers = [];
 
-function getAccessToken() {
-    return localStorage.getItem(ACCESS_TOKEN_KEY) || '';
-}
+function getAccessToken() { return localStorage.getItem(ACCESS_TOKEN_KEY) || ''; }
+function clearSession()   { localStorage.clear(); }
 
-function clearSession() {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem('tbibi_session');
-    localStorage.removeItem('tbibi_user');
+function getCurrentUser() {
+    try { return JSON.parse(localStorage.getItem('tbibi_user')); }
+    catch { return null; }
 }
 
 async function apiFetch(path, options = {}) {
     const token = getAccessToken();
     const headers = {
         ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: 'Bearer ' + token } : {}),
         ...(options.headers || {})
     };
-
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-        ...options,
-        headers
-    });
-
-    if (response.status === 401) {
-        clearSession();
-        window.location.href = 'login.html';
-        throw new Error('Session expirée.');
-    }
-
+    const response = await fetch(API_BASE_URL + path, Object.assign({}, options, { headers }));
+    if (response.status === 401) { clearSession(); window.location.href = 'login.html'; return null; }
     return response;
 }
 
 function showDashboardNotice(message) {
     const el = document.getElementById('dashboard-toast');
     const body = document.getElementById('dashboard-toast-body');
-    if (!el || !body) {
-        return;
-    }
+    if (!el || !body) return;
     body.textContent = message;
-    const t = bootstrap.Toast.getOrCreateInstance(el, { delay: 4500 });
-    t.show();
+    bootstrap.Toast.getOrCreateInstance(el, { delay: 4500 }).show();
 }
 
-function resolveAvatarUrl(d) {
-    if (!d || !d.avatarUrl) {
-        return '../assets/logo.png';
-    }
-    return d.avatarUrl;
-}
-
-function formatExperienceYears(years) {
-    if (years == null || years === '') {
-        return 'Expérience non renseignée';
-    }
-    return `${years} ans d'expérience`;
-}
-
-function doctorDisplayName(d) {
-    const first = d.firstName || '';
-    const last = d.lastName || '';
-    return `Dr. ${first} ${last}`.trim();
-}
+function resolveAvatarUrl(d) { return (d && d.avatarUrl) ? d.avatarUrl : '../assets/logo.jpg'; }
+function formatExperienceYears(y) { return (y == null || y === '') ? "Experience non renseignee" : y + " ans d'experience"; }
+function doctorDisplayName(d) { return ('Dr. ' + (d.firstName || '') + ' ' + (d.lastName || '')).trim(); }
 
 function normalizeDoctor(dto) {
     return {
         id: dto.id,
         firstName: dto.firstName || dto.givenName || '',
-        lastName: dto.lastName || dto.familyName || '',
-        specialty: dto.specialty || dto.speciality || '—',
-        experienceYears: dto.experienceYears ?? dto.yearsOfExperience ?? null,
+        lastName:  dto.lastName  || dto.familyName || '',
+        specialty: dto.specialty || dto.speciality || '-',
+        experienceYears: dto.experienceYears != null ? dto.experienceYears : null,
         bio: dto.bio || dto.description || '',
         isOnline: Boolean(dto.isOnline),
-        avatarUrl: dto.avatarUrl || dto.avatar || '../assets/logo.png'
+        avatarUrl: dto.avatarUrl || dto.avatar || '../assets/logo.jpg'
     };
 }
 
-function updateDoctorView(doctorId) {
-    const doctor = doctorsCache.find((x) => String(x.id) === String(doctorId));
-    if (!doctor) {
-        return;
-    }
+// ── Patient mode: doctor list ─────────────────────────────────
 
-    const title = document.getElementById('doctor-title');
-    const avatar = document.getElementById('doctor-avatar-summary');
-    const specialty = document.getElementById('doctor-specialty');
-    const status = document.getElementById('doctor-status');
-    const experience = document.getElementById('doctor-experience');
-    const description = document.getElementById('doctor-description');
+function updateDoctorView(doctor) {
+    if (!doctor) return;
+    var name = doctorDisplayName(doctor);
+    var t = document.getElementById('doctor-title');
+    var av = document.getElementById('doctor-avatar-summary');
+    var sp = document.getElementById('doctor-specialty');
+    var st = document.getElementById('doctor-status');
+    var ex = document.getElementById('doctor-experience');
+    var de = document.getElementById('doctor-description');
+    var cn = document.getElementById('chat-doctor-name');
+    if (t)  t.textContent  = name;
+    if (sp) sp.textContent = doctor.specialty || '-';
+    if (ex) ex.textContent = formatExperienceYears(doctor.experienceYears);
+    if (de) de.textContent = doctor.bio || 'Aucune description disponible.';
+    if (cn) cn.textContent = name;
+    if (av) { av.src = resolveAvatarUrl(doctor); av.alt = name; }
+    if (st) { var online = doctor.isOnline === true; st.textContent = online ? 'En ligne' : 'Hors ligne'; st.className = 'badge ' + (online ? 'bg-success' : 'bg-secondary'); }
+}
 
-    const name = doctorDisplayName(doctor);
-    const online = doctor.isOnline === true;
-    const statusLabel = online ? 'En ligne' : 'Hors ligne';
-
-    if (title) title.textContent = name;
-    if (avatar) {
-        avatar.src = resolveAvatarUrl(doctor);
-        avatar.alt = name;
-    }
-    if (specialty) specialty.textContent = doctor.specialty || '—';
-    if (experience) experience.textContent = formatExperienceYears(doctor.experienceYears);
-    if (description) description.textContent = doctor.bio || 'Aucune description disponible.';
-
-    if (status) {
-        status.textContent = statusLabel;
-        status.className = `badge ${online ? 'bg-success' : 'bg-secondary'}`;
-    }
-
-    const chatDoctorName = document.getElementById('chat-doctor-name');
-    if (chatDoctorName) {
-        chatDoctorName.textContent = name;
-    }
+async function loadDoctorDetails(doctorId) {
+    var cached = doctorsCache.find(function(x) { return String(x.id) === String(doctorId); });
+    var response = await apiFetch('/doctors/' + doctorId, { method: 'GET' });
+    if (!response) { if (cached) updateDoctorView(cached); return; }
+    var payload = await response.json().catch(function() { return {}; });
+    if (!response.ok) throw new Error(payload.message || 'Impossible de charger les details du medecin.');
+    var doctor = normalizeDoctor(payload);
+    doctorsCache = doctorsCache.map(function(d) { return String(d.id) === String(doctor.id) ? Object.assign({}, d, doctor) : d; });
+    updateDoctorView(doctor);
 }
 
 function renderDoctorList() {
-    const container = document.getElementById('doctor-list-container');
-    if (!container) {
-        return;
-    }
+    var container = document.getElementById('doctor-list-container');
+    if (!container) return;
+    var ph = document.getElementById('doctor-list-placeholder');
+    if (ph) ph.remove();
+    var anchor = container.querySelector('[data-action="reports"]');
+    container.querySelectorAll('.doctor-nav-card[data-doctor-id]').forEach(function(el) { el.remove(); });
 
-    const placeholder = document.getElementById('doctor-list-placeholder');
-    if (placeholder) {
-        placeholder.remove();
-    }
-
-    const actionAnchor = container.querySelector('[data-action="reports"]');
-
-    container.querySelectorAll('.doctor-nav-card[data-doctor-id]').forEach((el) => el.remove());
-
-    doctorsCache.forEach((doctor) => {
-        const card = document.createElement('div');
+    doctorsCache.forEach(function(doctor) {
+        var card = document.createElement('div');
         card.className = 'doctor-nav-card';
         card.setAttribute('data-doctor-id', String(doctor.id));
-        const onlineClass = doctor.isOnline ? 'text-success' : 'text-secondary';
-        card.innerHTML = `
-            <img src="${resolveAvatarUrl(doctor)}" alt="${doctorDisplayName(doctor)}" class="doctor-avatar">
-            <div class="ms-3 overflow-hidden">
-                <span class="d-block fw-bold text-truncate">${doctorDisplayName(doctor)}</span>
-                <small class="${onlineClass} text-truncate">${doctor.specialty || '—'}</small>
-            </div>
-        `;
+        card.innerHTML = '<img src="' + resolveAvatarUrl(doctor) + '" alt="' + doctorDisplayName(doctor) + '" class="doctor-avatar">' +
+            '<div class="ms-3 overflow-hidden">' +
+            '<span class="d-block fw-bold text-truncate">' + doctorDisplayName(doctor) + '</span>' +
+            '<small class="' + (doctor.isOnline ? 'text-success' : 'text-secondary') + ' text-truncate">' + (doctor.specialty || '-') + '</small></div>';
 
-        card.addEventListener('click', () => {
-            container
-                .querySelectorAll('.doctor-nav-card[data-doctor-id]')
-                .forEach((c) => c.classList.remove('active-doctor'));
+        card.addEventListener('click', function() {
+            container.querySelectorAll('.doctor-nav-card[data-doctor-id]').forEach(function(c) { c.classList.remove('active-doctor'); });
             card.classList.add('active-doctor');
-            currentDoctorId = doctor.id;
-            updateDoctorView(currentDoctorId);
-
-            const chatView = document.getElementById('chat-view');
-            const summaryView = document.getElementById('doctor-summary-view');
-            if (chatView) chatView.classList.add('d-none');
-            if (summaryView) summaryView.classList.remove('d-none');
+            currentPartnerId = doctor.id;
+            document.getElementById('chat-view') && document.getElementById('chat-view').classList.add('d-none');
+            document.getElementById('doctor-summary-view') && document.getElementById('doctor-summary-view').classList.remove('d-none');
+            loadDoctorDetails(currentPartnerId).catch(function(err) { showDashboardNotice(err.message); updateDoctorView(doctor); });
         });
-
-        if (actionAnchor) {
-            container.insertBefore(card, actionAnchor);
-        } else {
-            container.appendChild(card);
-        }
+        anchor ? container.insertBefore(card, anchor) : container.appendChild(card);
     });
 
-    const firstCard = container.querySelector('.doctor-nav-card[data-doctor-id]');
-    if (firstCard) {
-        firstCard.classList.add('active-doctor');
-        currentDoctorId = firstCard.getAttribute('data-doctor-id');
-        updateDoctorView(currentDoctorId);
+    var first = container.querySelector('.doctor-nav-card[data-doctor-id]');
+    if (first) {
+        first.classList.add('active-doctor');
+        currentPartnerId = first.getAttribute('data-doctor-id');
+        loadDoctorDetails(currentPartnerId).catch(function(err) {
+            showDashboardNotice(err.message);
+            var fb = doctorsCache.find(function(x) { return String(x.id) === String(currentPartnerId); });
+            if (fb) updateDoctorView(fb);
+        });
     }
 }
 
 async function loadDoctors() {
-    const response = await apiFetch('/doctors', { method: 'GET' });
-    const payload = await response.json().catch(() => []);
-
-    if (!response.ok) {
-        throw new Error(payload.message || 'Impossible de charger les médecins.');
-    }
-
-    const raw = Array.isArray(payload) ? payload : payload.items || [];
-    doctorsCache = raw.map(normalizeDoctor);
+    var response = await apiFetch('/doctors', { method: 'GET' });
+    if (!response) return;
+    var payload = await response.json().catch(function() { return []; });
+    if (!response.ok) throw new Error(payload.message || 'Impossible de charger les medecins.');
+    doctorsCache = (Array.isArray(payload) ? payload : payload.items || []).map(normalizeDoctor);
     renderDoctorList();
 }
 
-function normalizeMedicalFile(dto) {
-    return {
-        id: dto.id,
-        name: dto.originalFileName || dto.fileName || dto.name || `Document ${dto.id}`,
-        createdAt: dto.createdAt || dto.uploadedAt || null
-    };
-}
+// ── Patient mode: medical files ───────────────────────────────
 
 async function loadMedicalFiles() {
-    const listEl = document.getElementById('file-history-list');
-    const emptyEl = document.getElementById('file-history-empty');
-
-    if (!listEl) {
-        return;
-    }
-
-    const response = await apiFetch('/medical-files', { method: 'GET' });
-    const payload = await response.json().catch(() => []);
-
-    if (!response.ok) {
-        throw new Error(payload.message || 'Impossible de charger les fichiers médicaux.');
-    }
-
-    const files = (Array.isArray(payload) ? payload : payload.items || []).map(normalizeMedicalFile);
-
-    listEl.querySelectorAll('[data-file-id]').forEach((el) => el.remove());
-
-    if (!files.length) {
-        if (emptyEl) {
-            emptyEl.textContent = 'Aucun fichier pour le moment.';
-            emptyEl.classList.remove('d-none');
-        }
-        return;
-    }
-
-    if (emptyEl) {
-        emptyEl.classList.add('d-none');
-    }
-
-    files.forEach((file) => {
-        const a = document.createElement('a');
-        a.href = '#';
-        a.className = 'd-flex justify-content-between align-items-center list-group-item list-group-item-action';
-        a.setAttribute('data-file-id', String(file.id));
-        a.innerHTML = `
-            <span>${file.name}</span>
-            <i class="bi bi-eye text-primary"></i>
-        `;
-
-        a.addEventListener('click', (event) => {
-            event.preventDefault();
-            loadFileById(file.id, file.name);
+    var listEl  = document.getElementById('file-history-list');
+    var emptyEl = document.getElementById('file-history-empty');
+    if (!listEl) return;
+    var response = await apiFetch('/patients/' + currentUserId + '/medical-files', { method: 'GET' });
+    if (!response) return;
+    var payload = await response.json().catch(function() { return []; });
+    if (!response.ok) throw new Error(payload.message || 'Impossible de charger les fichiers.');
+    var files = (Array.isArray(payload) ? payload : payload.items || []).map(function(dto) {
+        return { id: dto.id, name: dto.originalFileName || dto.fileName || dto.name || 'Document ' + dto.id, createdAt: dto.createdAt || null };
+    });
+    listEl.querySelectorAll('[data-file-id]').forEach(function(el) { el.remove(); });
+    if (!files.length) { if (emptyEl) { emptyEl.textContent = 'Aucun fichier pour le moment.'; emptyEl.classList.remove('d-none'); } return; }
+    if (emptyEl) emptyEl.classList.add('d-none');
+    files.forEach(function(file) {
+        var item = document.createElement('div');
+        item.className = 'd-flex justify-content-between align-items-center list-group-item list-group-item-action';
+        item.setAttribute('data-file-id', String(file.id));
+        item.innerHTML = '<div><span class="d-block">' + file.name + '</span><small class="text-muted">' + (file.createdAt || '') + '</small></div>' +
+            '<div class="d-flex gap-2"><button class="btn btn-sm btn-outline-primary" data-action="view">Voir</button>' +
+            '<button class="btn btn-sm btn-outline-danger" data-action="delete">Supprimer</button></div>';
+        item.querySelector('[data-action="view"]').addEventListener('click', function() { loadFileById(file.id, file.name); });
+        item.querySelector('[data-action="delete"]').addEventListener('click', async function() {
+            if (!window.confirm('Supprimer ' + file.name + ' ?')) return;
+            var res = await apiFetch('/patients/' + currentUserId + '/medical-files/' + file.id, { method: 'DELETE' });
+            if (res && res.ok) { showDashboardNotice('Fichier supprime.'); await loadMedicalFiles(); }
         });
-
-        listEl.appendChild(a);
+        listEl.appendChild(item);
     });
 }
 
 async function loadFileById(fileId, fileName) {
-    const iframe = document.getElementById('medical-file-iframe');
-    const fileTitle = document.getElementById('current-file-title');
-
-    if (!iframe || !fileTitle) {
-        return;
-    }
-
-    const response = await apiFetch(`/medical-files/${fileId}/download`, { method: 'GET' });
-    if (!response.ok) {
-        throw new Error('Impossible de charger le document.');
-    }
-
-    const blob = await response.blob();
-
-    if (lastMedicalBlobUrl) {
-        URL.revokeObjectURL(lastMedicalBlobUrl);
-    }
-
+    var iframe = document.getElementById('medical-file-iframe');
+    var title  = document.getElementById('current-file-title');
+    if (!iframe) return;
+    var response = await apiFetch('/patients/' + currentUserId + '/medical-files/' + fileId + '/download', { method: 'GET' });
+    if (!response || !response.ok) { showDashboardNotice('Impossible de charger le document.'); return; }
+    var blob = await response.blob();
+    if (lastMedicalBlobUrl) URL.revokeObjectURL(lastMedicalBlobUrl);
     lastMedicalBlobUrl = URL.createObjectURL(blob);
     iframe.src = lastMedicalBlobUrl;
-    fileTitle.textContent = fileName || `Document ${fileId}`;
+    if (title) title.textContent = fileName || 'Document ' + fileId;
 }
+
+// ── Patient mode: book appointment form ──────────────────────
+
+function attachBookingForm() {
+    var summaryView = document.getElementById('doctor-summary-view');
+    if (!summaryView || document.getElementById('booking-form-section')) return;
+    var section = document.createElement('div');
+    section.id = 'booking-form-section';
+    section.className = 'mt-4 border-top pt-3';
+    section.innerHTML = '<h6 class="fw-bold mb-3"><i class="bi bi-calendar-plus me-1 text-primary"></i> Prendre un rendez-vous</h6>' +
+        '<div class="mb-2"><label class="form-label small fw-semibold">Date et heure</label>' +
+        '<input type="datetime-local" class="form-control form-control-sm" id="booking-datetime"></div>' +
+        '<div class="mb-2"><label class="form-label small fw-semibold">Motif</label>' +
+        '<input type="text" class="form-control form-control-sm" id="booking-reason" placeholder="Ex : Controle annuel..."></div>' +
+        '<button class="btn btn-primary btn-sm w-100 fw-bold" id="booking-submit-btn"><i class="bi bi-send me-1"></i> Confirmer</button>' +
+        '<div id="booking-feedback" class="mt-2 small"></div>';
+    summaryView.appendChild(section);
+
+    document.getElementById('booking-submit-btn').addEventListener('click', async function() {
+        var dt = document.getElementById('booking-datetime').value;
+        var reason = document.getElementById('booking-reason').value.trim();
+        var fb = document.getElementById('booking-feedback');
+        if (!dt) { fb.innerHTML = '<span class="text-danger">Choisissez une date.</span>'; return; }
+        if (!currentPartnerId) { fb.innerHTML = '<span class="text-danger">Selectionnez un medecin.</span>'; return; }
+        try {
+            var res = await apiFetch('/appointments', { method: 'POST', body: JSON.stringify({ patientId: currentUserId, doctorId: Number(currentPartnerId), scheduledAt: dt, reason: reason || 'Consultation' }) });
+            if (!res) return;
+            var data = await res.json().catch(function() { return {}; });
+            if (!res.ok) throw new Error(data.message || 'Impossible de reserver.');
+            fb.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Rendez-vous cree !</span>';
+            document.getElementById('booking-datetime').value = '';
+            document.getElementById('booking-reason').value = '';
+        } catch (err) { fb.innerHTML = '<span class="text-danger">' + err.message + '</span>'; }
+    });
+}
+
+// ── Doctor mode ───────────────────────────────────────────────
+
+function statusColor(s) { return { ALL:'primary', PENDING:'warning', CONFIRMED:'success', COMPLETED:'secondary', CANCELLED:'danger' }[s] || 'secondary'; }
+
+function initDoctorMode(user) {
+    var leftTitle = document.querySelector('.doctor-messenger-nav h6');
+    if (leftTitle) leftTitle.innerHTML = '<i class="bi bi-people-fill me-1"></i> Mes Patients';
+
+    var fileArea = document.querySelector('.file-viewer-area');
+    if (fileArea) {
+        fileArea.innerHTML = '<h3 class="fw-bold text-primary mb-3"><i class="bi bi-calendar-check me-2"></i> Mes Rendez-vous</h3>' +
+            '<div class="mb-3 d-flex gap-2 flex-wrap" id="appt-filter-tabs">' +
+            '<button class="btn btn-sm btn-primary appt-filter-btn active" data-filter="ALL">Tous</button>' +
+            '<button class="btn btn-sm btn-outline-warning appt-filter-btn" data-filter="PENDING">En attente</button>' +
+            '<button class="btn btn-sm btn-outline-success appt-filter-btn" data-filter="CONFIRMED">Confirmes</button>' +
+            '<button class="btn btn-sm btn-outline-secondary appt-filter-btn" data-filter="COMPLETED">Termines</button>' +
+            '<button class="btn btn-sm btn-outline-danger appt-filter-btn" data-filter="CANCELLED">Annules</button></div>' +
+            '<div id="appointments-container"><div class="text-muted small p-3">Chargement...</div></div>';
+
+        fileArea.querySelectorAll('.appt-filter-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                fileArea.querySelectorAll('.appt-filter-btn').forEach(function(b) {
+                    b.classList.remove('active','btn-primary','btn-warning','btn-success','btn-secondary','btn-danger');
+                    b.classList.add('btn-outline-' + statusColor(b.dataset.filter));
+                });
+                btn.classList.remove('btn-outline-' + statusColor(btn.dataset.filter));
+                btn.classList.add('active', 'btn-' + statusColor(btn.dataset.filter));
+                renderAppointments(btn.dataset.filter);
+            });
+        });
+    }
+
+    var dt = document.getElementById('doctor-title');
+    if (dt) dt.textContent = 'Dr. ' + user.firstName + ' ' + user.lastName;
+    var dd = document.getElementById('doctor-description');
+    if (dd) dd.textContent = 'Cliquez sur Chat dans un rendez-vous pour contacter le patient.';
+
+    loadDoctorAppointments();
+}
+
+async function loadDoctorAppointments() {
+    var container = document.getElementById('appointments-container');
+    if (!container) return;
+    var response = await apiFetch('/appointments/doctor/' + currentUserId, { method: 'GET' });
+    if (!response) return;
+    var payload = await response.json().catch(function() { return []; });
+    if (!response.ok) { container.innerHTML = '<div class="alert alert-danger">' + (payload.message || 'Erreur.') + '</div>'; return; }
+    allAppointments = Array.isArray(payload) ? payload : [];
+    buildPatientList(allAppointments);
+    renderAppointments('ALL');
+}
+
+function renderAppointments(filter) {
+    var container = document.getElementById('appointments-container');
+    if (!container) return;
+    var list = filter === 'ALL' ? allAppointments : allAppointments.filter(function(a) { return a.status === filter; });
+    if (!list.length) { container.innerHTML = '<div class="text-muted p-3 text-center">Aucun rendez-vous' + (filter !== 'ALL' ? ' dans cette categorie' : '') + '.</div>'; return; }
+    container.innerHTML = list.map(function(appt) {
+        var dt = appt.scheduledAt ? new Date(appt.scheduledAt).toLocaleString('fr-FR') : '-';
+        var color = statusColor(appt.status);
+        var safeName = (appt.patientName || 'Patient').replace(/'/g, "\\'");
+        var confirmBtns = appt.status === 'PENDING' ?
+            '<div class="mt-3 d-flex gap-2">' +
+            '<button class="btn btn-sm btn-success fw-bold" onclick="updateApptStatus(' + appt.id + ',\'CONFIRMED\')"><i class="bi bi-check-lg me-1"></i>Confirmer</button>' +
+            '<button class="btn btn-sm btn-outline-danger fw-bold" onclick="updateApptStatus(' + appt.id + ',\'CANCELLED\')"><i class="bi bi-x-lg me-1"></i>Annuler</button></div>' : '';
+        return '<div class="card mb-3 shadow-sm border-0"><div class="card-body">' +
+            '<div class="d-flex justify-content-between align-items-start">' +
+            '<div><h6 class="fw-bold mb-1"><i class="bi bi-person-fill me-1 text-primary"></i>' + (appt.patientName || 'Patient') + '</h6>' +
+            '<div class="text-muted small mb-1"><i class="bi bi-clock me-1"></i>' + dt + '</div>' +
+            '<div class="text-muted small"><i class="bi bi-chat-square-text me-1"></i>' + (appt.reason || '-') + '</div></div>' +
+            '<span class="badge bg-' + color + '-subtle text-' + color + '">' + appt.status + '</span></div>' +
+            confirmBtns +
+            '<div class="mt-2"><button class="btn btn-sm btn-outline-primary fw-bold" onclick="openChatWithPatient(' + appt.patientId + ',\'' + safeName + '\')"><i class="bi bi-chat-left-text me-1"></i>Chat</button></div>' +
+            '</div></div>';
+    }).join('');
+}
+
+async function updateApptStatus(apptId, newStatus) {
+    try {
+        var res = await apiFetch('/appointments/' + apptId + '/status', { method: 'PUT', body: JSON.stringify({ status: newStatus }) });
+        if (!res) return;
+        if (!res.ok) throw new Error((await res.json().catch(function(){return{};})).message || 'Erreur.');
+        showDashboardNotice(newStatus === 'CONFIRMED' ? 'Rendez-vous confirme.' : 'Rendez-vous annule.');
+        await loadDoctorAppointments();
+    } catch (err) { showDashboardNotice(err.message); }
+}
+window.updateApptStatus = updateApptStatus;
+
+function buildPatientList(appointments) {
+    var container = document.getElementById('doctor-list-container');
+    if (!container) return;
+    var ph = document.getElementById('doctor-list-placeholder');
+    if (ph) ph.remove();
+    container.querySelectorAll('.doctor-nav-card[data-patient-id]').forEach(function(el) { el.remove(); });
+    var seen = {}, patients = [];
+    appointments.forEach(function(a) { if (!seen[a.patientId]) { seen[a.patientId] = true; patients.push({ id: a.patientId, name: a.patientName || 'Patient ' + a.patientId }); } });
+    patients.forEach(function(patient) {
+        var card = document.createElement('div');
+        card.className = 'doctor-nav-card';
+        card.setAttribute('data-patient-id', String(patient.id));
+        card.innerHTML = '<img src="../assets/logo.jpg" alt="' + patient.name + '" class="doctor-avatar"><div class="ms-3 overflow-hidden"><span class="d-block fw-bold text-truncate">' + patient.name + '</span><small class="text-secondary">Patient</small></div>';
+        card.addEventListener('click', function() {
+            container.querySelectorAll('.doctor-nav-card[data-patient-id]').forEach(function(c) { c.classList.remove('active-doctor'); });
+            card.classList.add('active-doctor');
+            openChatWithPatient(patient.id, patient.name);
+        });
+        container.appendChild(card);
+    });
+}
+
+function openChatWithPatient(patientId, patientName) {
+    currentPartnerId = patientId;
+    var sv = document.getElementById('doctor-summary-view');
+    var cv = document.getElementById('chat-view');
+    if (sv) sv.classList.add('d-none');
+    if (cv) cv.classList.remove('d-none');
+    var ne = document.getElementById('chat-doctor-name');
+    if (ne) ne.textContent = patientName || 'Patient ' + patientId;
+    loadConversation(patientId);
+}
+window.openChatWithPatient = openChatWithPatient;
+
+// ── Chat ──────────────────────────────────────────────────────
 
 function renderChatMessages(messages) {
-    const chatMessagesContainer = document.querySelector('.chat-messages-container');
-    if (!chatMessagesContainer) {
-        return;
-    }
-
-    chatMessagesContainer.innerHTML = '';
-
-    messages.forEach((message) => {
-        const msg = document.createElement('div');
-        const mine = message.senderRole === 'PATIENT' || message.mine === true;
-        msg.className = `message ${mine ? 'patient-message' : 'doctor-message'}`;
-        msg.textContent = message.content || '';
-        chatMessagesContainer.appendChild(msg);
+    var container = document.querySelector('.chat-messages-container');
+    if (!container) return;
+    container.innerHTML = '';
+    messages.forEach(function(msg) {
+        var div = document.createElement('div');
+        div.className = 'message ' + (msg.mine ? 'patient-message' : 'doctor-message');
+        div.textContent = msg.content || '';
+        container.appendChild(div);
     });
-
-    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    container.scrollTop = container.scrollHeight;
 }
 
-async function loadConversation(doctorId) {
-    const response = await apiFetch(`/chats/${doctorId}/messages`, { method: 'GET' });
-    const payload = await response.json().catch(() => []);
+function connectWebSocket(userId) {
+    if (stompClient && stompClient.connected) return;
+    var socket = new SockJS('http://localhost:8084/ws');
+    stompClient = Stomp.over(socket);
+    stompClient.debug = null;
+    stompClient.connect({}, function() {
+        stompClient.subscribe('/topic/chat.' + userId, function(frame) {
+            var msg = JSON.parse(frame.body);
+            currentConversationMessages.push(msg);
+            renderChatMessages(currentConversationMessages);
+        });
+    }, function(err) { console.error('WebSocket error:', err); });
+}
 
-    if (!response.ok) {
-        throw new Error(payload.message || 'Impossible de charger les messages.');
-    }
-
-    currentConversationMessages = Array.isArray(payload) ? payload : payload.items || [];
+async function loadConversation(partnerId) {
+    if (!currentUserId || !partnerId) return;
+    var response = await apiFetch('/chats/' + partnerId + '/messages?userId=' + currentUserId, { method: 'GET' });
+    if (!response) return;
+    var payload = await response.json().catch(function() { return []; });
+    currentConversationMessages = Array.isArray(payload) ? payload : [];
     renderChatMessages(currentConversationMessages);
 }
 
-async function sendChatMessage(doctorId, content) {
-    const response = await apiFetch(`/chats/${doctorId}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({ content })
-    });
+async function sendChatMessage(partnerId, content) {
+    if (!stompClient || !stompClient.connected) { showDashboardNotice('Connexion WebSocket perdue. Rechargez la page.'); return; }
+    stompClient.send('/app/chat', {}, JSON.stringify({ senderId: currentUserId, receiverId: Number(partnerId), content: content }));
+}
 
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-        throw new Error(payload.message || 'Envoi du message impossible.');
-    }
+// ── Nearby map ────────────────────────────────────────────────
 
-    const posted = payload && payload.id ? payload : null;
-    if (posted) {
-        currentConversationMessages.push(posted);
-        renderChatMessages(currentConversationMessages);
+function renderMedicalMap(places, userLat, userLng) {
+    var mapEl = document.getElementById('nearby-map');
+    if (!mapEl) return;
+    mapEl.style.display = 'block';
+    if (nearbyMap) {
+        nearbyMapMarkers.forEach(function(m) { nearbyMap.removeLayer(m); });
+        nearbyMapMarkers = [];
+        nearbyMap.setView([userLat, userLng], 14);
     } else {
-        await loadConversation(doctorId);
+        nearbyMap = L.map('nearby-map').setView([userLat, userLng], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OpenStreetMap' }).addTo(nearbyMap);
     }
+    var userIcon = L.divIcon({ html: '<div style="background:#0d6efd;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px rgba(0,0,0,0.4)"></div>', className: '', iconAnchor: [7,7] });
+    nearbyMapMarkers.push(L.marker([userLat, userLng], { icon: userIcon }).addTo(nearbyMap).bindPopup('<b>Votre position</b>'));
+    var typeColors = { 'Pharmacie':'#198754', 'Hopital':'#dc3545', 'Clinique':'#fd7e14', 'Cabinet medical':'#0d6efd' };
+    places.forEach(function(place) {
+        if (!place.lat || !place.lon) return;
+        var color = typeColors[place.type] || '#6c757d';
+        var icon = L.divIcon({ html: '<div style="background:' + color + ';width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.3)"></div>', className: '', iconAnchor: [6,6] });
+        nearbyMapMarkers.push(L.marker([place.lat, place.lon], { icon: icon }).addTo(nearbyMap).bindPopup('<b>' + place.name + '</b><br><small>' + place.type + '</small>'));
+    });
+    setTimeout(function() { nearbyMap.invalidateSize(); }, 100);
 }
 
 function renderMedicalResults(places) {
-    const resultsGrid = document.getElementById('medical-results-grid');
-    if (!resultsGrid) {
-        return;
-    }
-
-    if (!places.length) {
-        resultsGrid.innerHTML =
-            '<div class="medical-empty-state">Aucun établissement trouvé dans ce rayon.</div>';
-        return;
-    }
-
-    resultsGrid.innerHTML = places
-        .slice(0, 8)
-        .map((place) => {
-            const addressParts = [place.street, place.city].filter(Boolean);
-            const address = addressParts.length
-                ? addressParts.join(', ')
-                : 'Adresse non disponible';
-            const dist = place.distance != null ? `${place.distance} m` : '—';
-
-            return `
-            <article class="medical-place-card">
-                <div>
-                    <h6 class="fw-bold mb-1">${place.name}</h6>
-                    <div class="medical-place-meta">${place.type || ''}</div>
-                    <div class="medical-place-meta mt-1">${address}</div>
-                </div>
-                <span class="badge bg-primary-subtle text-primary medical-distance-badge">${dist}</span>
-            </article>
-        `;
-        })
-        .join('');
-}
-
-function haversineMeters(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
-    const toRad = (d) => (d * Math.PI) / 180;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return Math.round(R * c);
-}
-
-function mapOverpassToPlaces(elements, centerLat, centerLng) {
-    const out = [];
-    const seen = new Set();
-
-    for (const el of elements) {
-        if (!el.tags) continue;
-        const lat = el.lat != null ? el.lat : el.center?.lat;
-        const lon = el.lon != null ? el.lon : el.center?.lon;
-        if (lat == null || lon == null) continue;
-
-        const key = `${lat.toFixed(5)},${lon.toFixed(5)},${el.tags.name || ''}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        const amenity = el.tags.amenity || el.tags.healthcare || '';
-        const name =
-            el.tags.name ||
-            el.tags['name:fr'] ||
-            (amenity === 'pharmacy' ? 'Pharmacie' : 'Établissement de santé');
-
-        out.push({
-            name,
-            type: amenity,
-            street: el.tags['addr:street'] || '',
-            city: el.tags['addr:city'] || el.tags['addr:place'] || '',
-            distance: haversineMeters(centerLat, centerLng, lat, lon)
-        });
-    }
-
-    out.sort((a, b) => (a.distance || 0) - (b.distance || 0));
-    return out;
+    var grid = document.getElementById('medical-results-grid');
+    if (!grid) return;
+    if (!places.length) { grid.innerHTML = '<div class="medical-empty-state">Aucun etablissement trouve.</div>'; return; }
+    grid.innerHTML = places.slice(0, 8).map(function(p) {
+        var addr = [p.street, p.city].filter(Boolean).join(', ') || 'Adresse non disponible';
+        return '<article class="medical-place-card"><div><h6 class="fw-bold mb-1">' + p.name + '</h6><div class="medical-place-meta">' + (p.type || '') + '</div><div class="medical-place-meta mt-1">' + addr + '</div></div><span class="badge bg-primary-subtle text-primary medical-distance-badge">' + (p.distance != null ? p.distance + ' m' : '-') + '</span></article>';
+    }).join('');
 }
 
 async function findNearbyMedicalPlaces(position) {
-    const locationStatus = document.getElementById('medical-location-status');
-    const resultsGrid = document.getElementById('medical-results-grid');
-
-    if (locationStatus) {
-        locationStatus.textContent = 'Recherche des services médicaux proches...';
-    }
-    if (resultsGrid) {
-        resultsGrid.innerHTML =
-            '<div class="medical-empty-state">Chargement des résultats...</div>';
-    }
-
-    const latitude = position.coords.latitude;
-    const longitude = position.coords.longitude;
-
-    const overpassEndpoint = 'https://overpass-api.de/api/interpreter';
-    const q = `
-[out:json][timeout:25];
-(
-  node["amenity"="hospital"](around:${searchRadiusMeters},${latitude},${longitude});
-  node["amenity"="clinic"](around:${searchRadiusMeters},${latitude},${longitude});
-  node["amenity"="doctors"](around:${searchRadiusMeters},${latitude},${longitude});
-  node["amenity"="pharmacy"](around:${searchRadiusMeters},${latitude},${longitude});
-  node["healthcare"="hospital"](around:${searchRadiusMeters},${latitude},${longitude});
-);
-out center;
-`.trim();
-
+    var statusEl = document.getElementById('medical-location-status');
+    var gridEl   = document.getElementById('medical-results-grid');
+    if (statusEl) statusEl.textContent = 'Recherche des services medicaux proches...';
+    if (gridEl)   gridEl.innerHTML     = '<div class="medical-empty-state">Chargement...</div>';
+    var lat = position.coords.latitude, lng = position.coords.longitude;
     try {
-        const res = await fetch(overpassEndpoint, {
-            method: 'POST',
-            body: `data=${encodeURIComponent(q)}`
-        });
-        if (!res.ok) {
-            throw new Error('La requête Overpass a échoué.');
-        }
-        const data = await res.json();
-        const places = mapOverpassToPlaces(data.elements || [], latitude, longitude);
-        if (locationStatus) {
-            locationStatus.textContent = `Position trouvée. ${places.length} résultat(s) (OpenStreetMap / Overpass).`;
-        }
+        var res = await apiFetch('/nearby-medical?lat=' + lat + '&lng=' + lng + '&radius=' + searchRadiusMeters, { method: 'GET' });
+        if (!res) return;
+        var data = await res.json().catch(function() { return {}; });
+        if (!res.ok) throw new Error(data.message || 'La recherche a echoue.');
+        var places = Array.isArray(data) ? data : data.items || [];
+        if (statusEl) statusEl.textContent = places.length + ' resultat(s) trouve(s).';
         renderMedicalResults(places);
-    } catch (e) {
-        if (locationStatus) {
-            locationStatus.textContent =
-                e.message || 'Impossible de contacter le service de cartographie.';
-        }
-        if (resultsGrid) {
-            resultsGrid.innerHTML =
-                '<div class="medical-empty-state">Vérifiez la connexion ou réessayez plus tard.</div>';
-        }
+        renderMedicalMap(places, lat, lng);
+    } catch (err) {
+        if (statusEl) statusEl.textContent = err.message;
+        if (gridEl)   gridEl.innerHTML = '<div class="medical-empty-state">Reessayez plus tard.</div>';
     }
 }
 
 function locateMedicalPlaces() {
-    const locationStatus = document.getElementById('medical-location-status');
-
+    var statusEl = document.getElementById('medical-location-status');
     if (!navigator.geolocation) {
-        if (locationStatus) {
-            locationStatus.textContent =
-                'La géolocalisation n’est pas disponible dans ce navigateur.';
-        }
+        if (statusEl) statusEl.textContent = 'Geolocalisation non disponible. Utilisation de Tunis.';
+        findNearbyMedicalPlaces({ coords: { latitude: TUNIS_FALLBACK_LAT, longitude: TUNIS_FALLBACK_LNG } });
         return;
     }
-
     navigator.geolocation.getCurrentPosition(
-        (position) => findNearbyMedicalPlaces(position),
-        () => {
-            if (locationStatus) {
-                locationStatus.textContent =
-                    'Autorisation refusée ou indisponible. Activez la géolocalisation pour voir les établissements proches.';
-            }
+        function(pos) { findNearbyMedicalPlaces(pos); },
+        function() {
+            if (statusEl) statusEl.textContent = 'Permission refusee. Utilisation de Tunis.';
+            findNearbyMedicalPlaces({ coords: { latitude: TUNIS_FALLBACK_LAT, longitude: TUNIS_FALLBACK_LNG } });
         },
-        {
-            enableHighAccuracy: true,
-            timeout: 8000,
-            maximumAge: 60000
-        }
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
     );
 }
 
+// ── Patient action buttons ────────────────────────────────────
+
 function handleAction(action) {
-    const summaryView = document.getElementById('doctor-summary-view');
-    const chatView = document.getElementById('chat-view');
-
-    if (!currentDoctorId) {
-        return;
-    }
-
+    var sv = document.getElementById('doctor-summary-view');
+    var cv = document.getElementById('chat-view');
+    if (action === 'BackToSummary') { if (sv) sv.classList.remove('d-none'); if (cv) cv.classList.add('d-none'); return; }
+    if (!currentPartnerId) { showDashboardNotice("Selectionnez un medecin d'abord."); return; }
     if (action === 'Message Direct') {
-        if (summaryView) summaryView.classList.add('d-none');
-        if (chatView) chatView.classList.remove('d-none');
-
-        loadConversation(currentDoctorId).catch((error) => {
-            showDashboardNotice(error.message || 'Impossible de charger la conversation.');
-        });
+        if (sv) sv.classList.add('d-none');
+        if (cv) cv.classList.remove('d-none');
+        loadConversation(currentPartnerId);
         return;
     }
-
-    if (action === 'BackToSummary') {
-        if (summaryView) summaryView.classList.remove('d-none');
-        if (chatView) chatView.classList.add('d-none');
-        return;
-    }
-
-    if (action === 'Consultation Vidéo') {
-        showDashboardNotice('Demande de consultation envoyée.');
-    }
+    if (action === 'Consultation Vidéo') showDashboardNotice('Demande de consultation envoyee.');
 }
-
 window.handleAction = handleAction;
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!document.querySelector('.app-wrapper')) {
-        return;
-    }
+// ── Init ──────────────────────────────────────────────────────
 
-    const logout = document.getElementById('logout-link');
-    if (logout) {
-        logout.addEventListener('click', () => {
-            clearSession();
-        });
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.querySelector('.app-wrapper')) return;
 
-    const uploadBtn = document.getElementById('medical-upload-btn');
-    const uploadInput = document.getElementById('medical-file-upload');
-    if (uploadBtn && uploadInput) {
-        uploadBtn.addEventListener('click', () => uploadInput.click());
-        uploadInput.addEventListener('change', async () => {
-            if (!uploadInput.files.length) {
-                return;
-            }
+    var user = getCurrentUser();
+    if (!user) { window.location.href = 'login.html'; return; }
+    if ((user.role || '').toUpperCase() === 'ADMIN') { window.location.href = 'admin.html'; return; }
 
-            const formData = new FormData();
-            [...uploadInput.files].forEach((file) => {
-                formData.append('files', file);
-            });
+    currentUserId = user.id;
 
-            try {
-                const response = await apiFetch('/medical-files', {
-                    method: 'POST',
-                    body: formData
-                });
+    var logoutLink = document.getElementById('logout-link');
+    if (logoutLink) logoutLink.addEventListener('click', clearSession);
 
-                if (!response.ok) {
-                    const payload = await response.json().catch(() => ({}));
-                    throw new Error(payload.message || 'Upload impossible.');
-                }
+    var emergencyBtn = document.getElementById('emergency-btn');
+    var emergencyEl  = document.getElementById('emergencyModal');
+    if (emergencyBtn && emergencyEl) { var modal = new bootstrap.Modal(emergencyEl); emergencyBtn.addEventListener('click', function() { modal.show(); }); }
 
-                showDashboardNotice('Fichier(s) envoyé(s) avec succès.');
-                await loadMedicalFiles();
-            } catch (error) {
-                showDashboardNotice(error.message || 'Erreur lors de l\'upload.');
-            } finally {
-                uploadInput.value = '';
-            }
-        });
-    }
-
-    const emergencyBtn = document.getElementById('emergency-btn');
-    const emergencyModalElement = document.getElementById('emergencyModal');
-    if (emergencyBtn && emergencyModalElement) {
-        const emergencyModal = new bootstrap.Modal(emergencyModalElement);
-        emergencyBtn.addEventListener('click', () => emergencyModal.show());
-    }
-
-    const chatInputField = document.getElementById('chat-input-field');
-    const chatSendBtn = document.getElementById('chat-send-btn');
-    if (chatSendBtn && chatInputField) {
-        const send = async () => {
-            const messageText = chatInputField.value.trim();
-            if (!messageText || !currentDoctorId) {
-                return;
-            }
-
-            try {
-                await sendChatMessage(currentDoctorId, messageText);
-                chatInputField.value = '';
-            } catch (error) {
-                showDashboardNotice(error.message || 'Erreur lors de l\'envoi du message.');
-            }
+    var chatInput   = document.getElementById('chat-input-field');
+    var chatSendBtn = document.getElementById('chat-send-btn');
+    if (chatSendBtn && chatInput) {
+        var sendMessage = async function() {
+            var text = chatInput.value.trim();
+            if (!text || !currentPartnerId) return;
+            try { await sendChatMessage(currentPartnerId, text); chatInput.value = ''; }
+            catch (err) { showDashboardNotice(err.message); }
         };
+        chatSendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
+    }
 
-        chatSendBtn.addEventListener('click', send);
-        chatInputField.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                send();
-            }
+    var locateBtn = document.getElementById('locate-medical-btn');
+    if (locateBtn) locateBtn.addEventListener('click', locateMedicalPlaces);
+
+    var uploadBtn   = document.getElementById('medical-upload-btn');
+    var uploadInput = document.getElementById('medical-file-upload');
+    if (uploadBtn && uploadInput) {
+        uploadBtn.addEventListener('click', function() { uploadInput.click(); });
+        uploadInput.addEventListener('change', async function() {
+            if (!uploadInput.files.length) return;
+            try {
+                for (var i = 0; i < uploadInput.files.length; i++) {
+                    var fd = new FormData(); fd.append('file', uploadInput.files[i]);
+                    var res = await apiFetch('/patients/' + currentUserId + '/medical-files', { method: 'POST', body: fd });
+                    if (!res) return;
+                    if (!res.ok) throw new Error((await res.json().catch(function(){return{};})).message || 'Upload impossible.');
+                }
+                showDashboardNotice('Fichier(s) envoye(s) avec succes.');
+                await loadMedicalFiles();
+            } catch (err) { showDashboardNotice(err.message); }
+            finally { uploadInput.value = ''; }
         });
     }
 
-    const locateMedicalBtn = document.getElementById('locate-medical-btn');
-    if (locateMedicalBtn) {
-        locateMedicalBtn.addEventListener('click', locateMedicalPlaces);
-    }
+    connectWebSocket(currentUserId);
 
-    Promise.all([loadDoctors(), loadMedicalFiles()]).catch((error) => {
-        showDashboardNotice(error.message || 'Impossible de charger vos données.');
-    });
+    var role = (user.role || '').toUpperCase();
+    if (role === 'DOCTOR') {
+        initDoctorMode(user);
+    } else {
+        attachBookingForm();
+        Promise.all([loadDoctors(), loadMedicalFiles()]).catch(function(err) {
+            showDashboardNotice(err.message || 'Impossible de charger vos donnees.');
+        });
+    }
 });

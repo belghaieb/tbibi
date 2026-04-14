@@ -1,17 +1,9 @@
 // Login page logic for TBIBI.
 // Connects the login form to a Spring backend.
 
-const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8080/api';
+const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8084/api';
 const ACCESS_TOKEN_KEY = 'tbibi_access_token';
 const REFRESH_TOKEN_KEY = 'tbibi_refresh_token';
-
-// Read plan information from the URL so the page can keep subscription context.
-const getUrlParameter = (name) => {
-    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-    const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-    const results = regex.exec(location.search);
-    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-};
 
 document.addEventListener('DOMContentLoaded', () => {
     // Only run on the login page.
@@ -20,8 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const planCode = getUrlParameter('plan');
-    const planPrice = getUrlParameter('price');
+    const params = new URLSearchParams(window.location.search);
+    const planCode = params.get('plan') || '';
+    const planPrice = params.get('price') || '';
     const planExists = planCode && planPrice;
     const signupLink = document.getElementById('signup-link');
 
@@ -29,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (planExists) {
         document.getElementById('plan-input').value = planCode;
         document.getElementById('price-input').value = planPrice;
-        signupLink.href = `signup.html?plan=${planCode}&price=${planPrice}`;
+        signupLink.href = `signup.html?plan=${encodeURIComponent(planCode)}&price=${encodeURIComponent(planPrice)}`;
     }
 
     const showError = (message) => {
@@ -62,9 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (payload.refreshToken) {
             localStorage.setItem(REFRESH_TOKEN_KEY, payload.refreshToken);
         }
-        if (payload.user) {
-            localStorage.setItem('tbibi_user', JSON.stringify(payload.user));
-        }
+        localStorage.setItem('tbibi_user', JSON.stringify(payload));
     };
 
     loginForm.addEventListener('submit', async (event) => {
@@ -102,13 +93,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             saveSession(body);
 
+            // Route to the correct page based on role:
+            // ADMIN  → admin.html (user management panel, no payment)
+            // DOCTOR → main.html (shared doctor/patient dashboard)
+            // PATIENT → main.html, or paiement.html if coming from pricing page
+            const role = (body.role || '').toUpperCase();
+
             let targetUrl = 'main.html';
-            if (planExists) {
+
+            if (role === 'ADMIN') {
+                // Admins never go through the payment flow
+                targetUrl = 'admin.html';
+            } else if (planExists) {
+                // Non-admin coming from the pricing page goes to payment first
                 targetUrl = `paiement.html?plan=${encodeURIComponent(planCode)}&price=${encodeURIComponent(planPrice)}`;
             }
 
             window.location.href = targetUrl;
         } catch (error) {
+            console.error(error);
             showError(error.message || 'Une erreur est survenue pendant la connexion.');
         } finally {
             if (submitButton) {

@@ -33,7 +33,7 @@ All JS modules expect the same runtime conventions.
 Each module uses:
 
 ```js
-const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8080/api';
+const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8080';
 ```
 
 If you deploy to another backend host, define `window.TBIBI_API_BASE` before page scripts.
@@ -90,59 +90,59 @@ The frontend currently calls these endpoints.
 
 ### Auth
 
-- `POST /auth/login`
+- `POST /api/auth/login`
   - request: `{ email, password }`
   - expected response: `{ accessToken, refreshToken, user }`
-- `POST /auth/register`
+- `POST /api/auth/register`
   - request: `multipart/form-data`
   - fields:
     - always: `firstName`, `lastName`, `phone`, `email`, `password`, `role`, `subscriptionPlan`, `termsAccepted`
     - doctor: `doctorIdDocument`, `doctorDiplomaDocument`, `doctorLicenseDocument`
     - patient (optional): repeated `medicalFiles`
-- `POST /auth/forgot-password`
+- `POST /api/auth/forgot-password`
   - request: `{ email }`
 
 ### Subscriptions / Payment
 
-- `POST /subscriptions/checkout-session`
+- `POST /api/subscriptions/checkout-session`
   - request: `{ planCode, amountHint, currency }`
   - expected response: one of:
     - `{ checkoutUrl: "..." }`
     - `{ redirectUrl: "..." }`
     - or no URL, then frontend falls back to `main.html`
-- `GET /subscriptions/me`
+- `GET /api/subscriptions/me`
   - used in account page
 
 ### Users
 
-- `GET /users/me`
-- `PUT /users/me`
+- `GET /api/account/me`
+- `PUT /api/account/me`
   - request: `{ firstName, lastName, phone, specialty, bio }`
-- `PUT /users/me/password`
+- `PUT /api/account/me/password`
   - request: `{ currentPassword, newPassword }`
 
 ### Doctors / Chat
 
-- `GET /doctors`
+- `GET /api/doctors`
   - expected doctor fields (supports aliases):
     - `id`, `firstName|givenName`, `lastName|familyName`, `specialty|speciality`, `experienceYears|yearsOfExperience`, `bio|description`, `isOnline`, `avatarUrl|avatar`
-- `GET /chats/{doctorId}/messages`
-- `POST /chats/{doctorId}/messages`
+- `GET /api/chats/{doctorId}/messages`
+- `POST /api/chats/{doctorId}/messages`
   - request: `{ content }`
 
 ### Medical Files
 
-- `GET /medical-files`
+- `GET /api/patients/{id}/medical-files`
   - expected item aliases supported by frontend:
     - `id`, `originalFileName|fileName|name`, `createdAt|uploadedAt`
-- `POST /medical-files`
+- `POST /api/patients/{id}/medical-files`
   - request: `multipart/form-data` with repeated `files`
-- `GET /medical-files/{fileId}/download`
+- `GET /api/patients/{id}/medical-files/{fileId}/download`
   - returns file blob
 
 ### Assistant
 
-- `POST /assistant/message`
+- `POST /api/assistant/chat`
   - request: `{ message }`
   - expected response: `{ reply }` or `{ message }`
 

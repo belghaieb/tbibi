@@ -1,7 +1,10 @@
 // Signup validation and doctor verification logic.
 // Connects the signup page to Spring backend APIs.
 
-const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8080/api';
+const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8084/api';
+
+const PHONE_REGEX = /^\+216\d{8}$/;
+const PASSWORD_REGEX = /^(?=.*\d).{8,}$/;
 
 window.validateTextOnly = function(event) {
     if (/[0-9]/.test(event.key)) {
@@ -37,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const patientFilesBlock = document.getElementById('patientFilesBlock');
     const patientMedicalFilesInput = document.getElementById('patientMedicalFiles');
     const patientFilesStatus = document.getElementById('patientFilesStatus');
+    const params = new URLSearchParams(window.location.search);
     let doctorDocsValidated = false;
 
     firstNameInput?.addEventListener('keypress', validateTextOnly);
@@ -107,36 +111,38 @@ document.addEventListener('DOMContentLoaded', function () {
         return planCode === 'basic' ? '60' : '90';
     };
 
-    const buildSignupFormData = function(selectedSubscription) {
+    const normalizePhone = function(value) {
+        return value.replace(/\s+/g, '');
+    };
+
+    const buildSignupJson = function(selectedSubscription) {
+        return {
+            firstName: firstNameInput.value.trim(),
+            lastName: lastNameInput.value.trim(),
+            phone: normalizePhone(phoneInput.value.trim()),
+            email: (emailInput?.value || '').trim(),
+            password: passwordInput.value,
+            role: roleSelect.value.toUpperCase(),
+            subscriptionCode: selectedSubscription.toUpperCase()
+        };
+    };
+
+    const uploadDoctorDocs = async function(doctorId) {
+        if (!doctorIdFileInput?.files[0]) return;
         const data = new FormData();
-        data.append('firstName', firstNameInput.value.trim());
-        data.append('lastName', lastNameInput.value.trim());
-        data.append('phone', phoneInput.value.trim());
-        data.append('email', (emailInput?.value || '').trim());
-        data.append('password', passwordInput.value);
-        data.append('role', roleSelect.value.toUpperCase());
-        data.append('subscriptionPlan', selectedSubscription.toUpperCase());
-        data.append('termsAccepted', String(Boolean(termsCheck?.checked)));
+        data.append('doctorId', doctorId);
+        data.append('idCard', doctorIdFileInput.files[0]);
+        if (doctorDiplomaFileInput?.files[0]) data.append('diploma', doctorDiplomaFileInput.files[0]);
+        if (doctorLicenseFileInput?.files[0]) data.append('license', doctorLicenseFileInput.files[0]);
+        await fetch(`${API_BASE_URL}/uploads/doctor-docs`, { method: 'POST', body: data });
+    };
 
-        if (roleSelect.value === 'doctor') {
-            if (doctorIdFileInput?.files[0]) {
-                data.append('doctorIdDocument', doctorIdFileInput.files[0]);
-            }
-            if (doctorDiplomaFileInput?.files[0]) {
-                data.append('doctorDiplomaDocument', doctorDiplomaFileInput.files[0]);
-            }
-            if (doctorLicenseFileInput?.files[0]) {
-                data.append('doctorLicenseDocument', doctorLicenseFileInput.files[0]);
-            }
-        }
-
-        if (roleSelect.value === 'patient' && patientMedicalFilesInput) {
-            [...patientMedicalFilesInput.files].forEach((file) => {
-                data.append('medicalFiles', file);
-            });
-        }
-
-        return data;
+    const uploadPatientFiles = async function(patientId) {
+        if (!patientMedicalFilesInput?.files.length) return;
+        const data = new FormData();
+        data.append('patientId', patientId);
+        [...patientMedicalFilesInput.files].forEach((file) => data.append('files', file));
+        await fetch(`${API_BASE_URL}/uploads/patient-medical-files`, { method: 'POST', body: data });
     };
 
     roleSelect?.addEventListener('change', function () {
@@ -195,10 +201,10 @@ document.addEventListener('DOMContentLoaded', function () {
         clearError();
 
         const nameRegex = /^[a-zA-ZÀ-ÿ\s'-]+$/;
-        const tunisianPhoneRegex = /^\+216\s?\d{2}\s?\d{3}\s?\d{3}$/;
         let namesAreValid = true;
         let passwordsMatch = true;
         let phoneIsValid = true;
+        const normalizedPhone = normalizePhone(phoneInput.value.trim());
 
         if (!nameRegex.test(firstNameInput.value) || !nameRegex.test(lastNameInput.value)) {
             namesAreValid = false;
@@ -221,9 +227,16 @@ document.addEventListener('DOMContentLoaded', function () {
             confirmPasswordInput.setCustomValidity('');
         }
 
-        if (!tunisianPhoneRegex.test(phoneInput.value.trim())) {
+        if (!PASSWORD_REGEX.test(passwordInput.value)) {
+            passwordsMatch = false;
+            passwordInput.setCustomValidity('Le mot de passe doit contenir au moins 8 caractères et un chiffre.');
+        } else {
+            passwordInput.setCustomValidity('');
+        }
+
+        if (!PHONE_REGEX.test(normalizedPhone)) {
             phoneIsValid = false;
-            phoneInput.setCustomValidity('Veuillez entrer un numéro tunisien valide (ex: +216 22 123 456).');
+            phoneInput.setCustomValidity('Veuillez entrer un numéro tunisien valide au format +216XXXXXXXX.');
         } else {
             phoneInput.setCustomValidity('');
         }
@@ -250,10 +263,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         try {
-            const formData = buildSignupFormData(selectedSubscription);
+            const jsonBody = buildSignupJson(selectedSubscription);
             const response = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(jsonBody)
             });
 
             const payload = await response.json().catch(() => ({}));
@@ -261,9 +275,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(payload.message || 'Inscription impossible pour le moment.');
             }
 
-            const planPrice = resolvePlanPrice(selectedSubscription);
-            window.location.href = `paiement.html?plan=${encodeURIComponent(selectedSubscription)}&price=${encodeURIComponent(planPrice)}`;
+            // Upload files after successful registration
+            if (roleSelect.value === 'doctor' && payload.id) {
+                await uploadDoctorDocs(payload.id);
+            }
+            if (roleSelect.value === 'patient' && payload.id) {
+                await uploadPatientFiles(payload.id);
+            }
+
+            const storedUser = payload.user || (({ accessToken, refreshToken, ...userFields }) => userFields)(payload);
+            if (payload.accessToken) {
+                localStorage.setItem('tbibi_access_token', payload.accessToken);
+            }
+            if (storedUser) {
+                localStorage.setItem('tbibi_user', JSON.stringify(storedUser));
+            }
+
+            const planFromUrl = params.get('plan');
+            const planToUse = planFromUrl || selectedSubscription;
+            const planPrice = params.get('price') || resolvePlanPrice(planToUse);
+            window.location.href = `paiement.html?plan=${encodeURIComponent(planToUse)}&price=${encodeURIComponent(planPrice)}`;
         } catch (error) {
+            console.error(error);
             showError(error.message || 'Une erreur est survenue pendant l\'inscription.');
         } finally {
             if (submitButton) {

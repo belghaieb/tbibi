@@ -26,18 +26,18 @@ package "TBIBI Frontend" {
 }
 
 package "Backend API" {
-  component "/auth/login" as AuthLogin
-  component "/auth/register" as AuthRegister
-  component "/auth/forgot-password" as AuthForgot
-  component "/subscriptions/checkout-session" as Checkout
-  component "/subscriptions/me" as SubMe
-  component "/users/me" as UsersMe
-  component "/users/me/password" as UsersPassword
-  component "/doctors" as Doctors
-  component "/chats/{doctorId}/messages" as Chats
-  component "/medical-files" as MedicalFiles
-  component "/medical-files/{id}/download" as MedicalFileDownload
-  component "/assistant/message" as AssistantApi
+  component "/api/auth/login" as AuthLogin
+  component "/api/auth/register" as AuthRegister
+  component "/api/auth/forgot-password" as AuthForgot
+  component "/api/subscriptions/checkout-session" as Checkout
+  component "/api/subscriptions/me" as SubMe
+  component "/api/account/me" as UsersMe
+  component "/api/account/me/password" as UsersPassword
+  component "/api/doctors" as Doctors
+  component "/api/chats/{doctorId}/messages" as Chats
+  component "/api/patients/{id}/medical-files" as MedicalFiles
+  component "/api/patients/{id}/medical-files/{fileId}/download" as MedicalFileDownload
+  component "/api/assistant/chat" as AssistantApi
 }
 
 package "External Services" {

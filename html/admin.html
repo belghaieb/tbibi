@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TBIBI — Administration</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+    <style>
+        /* ── Admin-specific overrides ────────────────────────── */
+        body { background: #f4f7fb; }
+
+        .admin-header {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 28px;
+        }
+
+        /* Stat cards */
+        .stat-card {
+            border: 1px solid rgba(15,23,42,.07);
+            border-radius: 18px;
+            background: #fff;
+            padding: 22px 24px;
+            box-shadow: 0 4px 16px rgba(15,23,42,.06);
+        }
+        .stat-card .stat-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+        }
+        .stat-card .stat-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+        .stat-card .stat-label { font-size: .85rem; color: #667085; margin-top: 4px; }
+
+        /* Tables */
+        .admin-table th  { background: #f8f9fb; font-weight: 600; font-size: .82rem; color: #667085; text-transform: uppercase; letter-spacing: .05em; }
+        .admin-table td  { vertical-align: middle; }
+        .admin-section   { background: #fff; border-radius: 18px; border: 1px solid rgba(15,23,42,.07); box-shadow: 0 4px 16px rgba(15,23,42,.06); padding: 24px; }
+
+        /* Role badges */
+        .badge-role-patient { background: #e0f2fe; color: #0369a1; }
+        .badge-role-doctor  { background: #dcfce7; color: #15803d; }
+        .badge-role-admin   { background: #fef3c7; color: #92400e; }
+        .badge-pending      { background: #fef9c3; color: #854d0e; }
+        .badge-verified     { background: #dcfce7; color: #15803d; }
+        .badge-rejected     { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ HEADER ══ -->
+<header class="admin-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-3">
+        <h1 class="text-primary fw-bold mb-0 fs-4">TBIBI</h1>
+        <span class="badge bg-danger-subtle text-danger fw-semibold">Administration</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <span class="text-muted small" id="admin-name-label">—</span>
+        <a href="login.html" class="btn btn-outline-secondary btn-sm fw-bold" id="admin-logout-btn">
+            <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+        </a>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ MAIN ══ -->
+<div class="container-fluid px-4 py-4" style="max-width:1400px;">
+
+    <!-- ── Stats row ─────────────────────────────────── -->
+    <div class="row g-3 mb-4" id="stats-row">
+        <!-- Cards injected by admin-page.js -->
+        <div class="col-12 text-muted small">Chargement des statistiques...</div>
+    </div>
+
+    <!-- ── Navigation tabs ───────────────────────────── -->
+    <ul class="nav nav-tabs mb-4 fw-semibold" id="admin-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-pending-btn" data-bs-toggle="tab"
+                    data-bs-target="#tab-pending" type="button" role="tab">
+                <i class="bi bi-hourglass-split me-1 text-warning"></i>
+                Médecins en attente
+                <span class="badge bg-warning text-dark ms-1" id="pending-count-badge">0</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-users-btn" data-bs-toggle="tab"
+                    data-bs-target="#tab-users" type="button" role="tab">
+                <i class="bi bi-people-fill me-1 text-primary"></i>
+                Tous les utilisateurs
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- ══ Tab 1 : Pending doctors ═══════════════════ -->
+        <div class="tab-pane fade show active" id="tab-pending" role="tabpanel">
+            <div class="admin-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-shield-exclamation me-2 text-warning"></i>
+                        Demandes de vérification en attente
+                    </h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="loadPendingDoctors()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir
+                    </button>
+                </div>
+
+                <div id="pending-table-container">
+                    <div class="text-muted small">Chargement...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ Tab 2 : All users ══════════════════════════ -->
+        <div class="tab-pane fade" id="tab-users" role="tabpanel">
+            <div class="admin-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-people-fill me-2 text-primary"></i>
+                        Tous les utilisateurs
+                    </h5>
+                    <div class="d-flex gap-2 align-items-center">
+                        <!-- Quick search filter (client-side) -->
+                        <input type="text" class="form-control form-control-sm" id="user-search-input"
+                               placeholder="Rechercher par nom ou email..." style="width:260px"
+                               oninput="filterUsers()">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="loadAllUsers()">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir
+                        </button>
+                    </div>
+                </div>
+
+                <div id="users-table-container">
+                    <div class="text-muted small">Chargement...</div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /tab-content -->
+</div>
+
+<!-- ═══════════════════════════════════════ CONFIRM MODAL ══ -->
+<!-- Shown before any destructive action (delete / reject) -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="confirm-modal-title">Confirmer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirm-modal-body">Êtes-vous sûr ?</div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger fw-bold" id="confirm-modal-ok">Confirmer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════ TOAST ══ -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
+    <div id="admin-toast" class="toast align-items-center text-bg-dark border-0" role="status">
+        <div class="d-flex">
+            <div class="toast-body small" id="admin-toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="../js/admin-page.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 // Payment page connected to Spring backend subscription checkout endpoint.
 
-const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8080/api';
+const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8084/api';
 const ACCESS_TOKEN_KEY = 'tbibi_access_token';
 
 const getUrlParameter = (name) => {
@@ -28,8 +28,9 @@ function formatExpiryInput(raw) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const plan = getUrlParameter('plan') || 'premium';
-    const price = getUrlParameter('price') || '90';
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get('plan') || 'premium';
+    const price = params.get('price') || '90';
 
     const labelEl = document.getElementById('pay-plan-label');
     const codeEl = document.getElementById('pay-plan-code');
@@ -84,52 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (form) {
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
-
             const submitBtn = document.getElementById('pay-submit-btn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-            }
-
-            try {
-                const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-                const response = await fetch(`${API_BASE_URL}/subscriptions/checkout-session`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
-                    },
-                    body: JSON.stringify({
-                        planCode: plan.toUpperCase(),
-                        amountHint: Number(price),
-                        currency: 'TND'
-                    })
-                });
-
-                const payload = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    throw new Error(payload.message || 'Impossible de lancer le paiement.');
-                }
-
-                if (payload.checkoutUrl) {
-                    window.location.href = payload.checkoutUrl;
-                    return;
-                }
-
-                if (payload.redirectUrl) {
-                    window.location.href = payload.redirectUrl;
-                    return;
-                }
-
-                window.location.href = 'main.html';
-            } catch (error) {
-                alert(error.message || 'Erreur lors de l\'initialisation du paiement.');
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                }
-            }
+            if (submitBtn) submitBtn.disabled = true;
+            window.location.href = 'main.html';
         });
     }
 });

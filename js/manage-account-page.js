@@ -1,12 +1,26 @@
-const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8080/api';
+const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8084/api';
 const ACCESS_TOKEN_KEY = 'tbibi_access_token';
 const REFRESH_TOKEN_KEY = 'tbibi_refresh_token';
 
+let currentUser = getCurrentUser();
+
+function getCurrentUser() {
+    try {
+        const raw = localStorage.getItem('tbibi_user');
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+if (!currentUser) {
+    window.location.href = 'login.html';
+}
+
+let confirmPasswordInput = null;
+
 function clearSession() {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem('tbibi_session');
-    localStorage.removeItem('tbibi_user');
+    localStorage.clear();
 }
 
 async function apiFetch(path, options = {}) {
@@ -25,7 +39,7 @@ async function apiFetch(path, options = {}) {
     if (response.status === 401) {
         clearSession();
         window.location.href = 'login.html';
-        throw new Error('Session expirée.');
+        return null;
     }
 
     return response;
@@ -53,7 +67,8 @@ function updateSidebar(user, subscription) {
     document.getElementById('account-sidebar-email').textContent = user.email || '—';
     document.getElementById('account-sidebar-phone').textContent = user.phone || '—';
 
-    const planLabel = subscription?.planCode || user.subscriptionPlan || 'Aucune formule';
+    const planCode = (subscription || user.subscriptionCode || user.subscriptionPlan || 'Aucune formule').toString().toUpperCase();
+    const planLabel = planCode === 'BASIC' ? 'Essentiel' : planCode === 'PREMIUM' ? 'Premium' : planCode;
     document.getElementById('account-sidebar-plan').textContent = planLabel;
 }
 
@@ -78,57 +93,84 @@ function updateProfileForm(user) {
     }
 }
 
-function updateSubscription(subscription) {
+function updateSubscription(subscriptionCode) {
     const summary = document.getElementById('subscription-summary');
     const perks = document.getElementById('subscription-perks');
+    const planCode = (subscriptionCode || 'AUCUNE FORMULE').toString().toUpperCase();
 
-    if (!subscription) {
+    if (!subscriptionCode) {
         summary.textContent = 'Aucun abonnement actif.';
         perks.innerHTML = '';
         return;
     }
 
-    const status = subscription.status || 'INACTIVE';
-    const renewal = subscription.renewalDate || subscription.nextBillingDate || '—';
-    summary.textContent = `Formule ${subscription.planCode || '—'} — Statut: ${status} — Renouvellement: ${renewal}`;
+    const planLabel = planCode === 'BASIC' ? 'Essentiel' : planCode === 'PREMIUM' ? 'Premium' : planCode;
+    const featureMap = {
+        BASIC: ['Accès au tableau de bord', 'Dossier médical personnel', 'Recherche des services proches'],
+        PREMIUM: ['Accès au tableau de bord', 'Dossier médical personnel', 'Recherche des services proches', 'Priorité sur les services premium']
+    };
 
-    const items = subscription.features || [];
+    summary.textContent = `Formule ${planLabel} active.`;
+    const items = featureMap[planCode] || [];
     perks.innerHTML = items
         .map((item) => `<li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>${item}</li>`)
         .join('');
 }
 
 async function loadAccountData() {
-    const [userRes, subRes] = await Promise.all([
-        apiFetch('/users/me', { method: 'GET' }),
-        apiFetch('/subscriptions/me', { method: 'GET' })
-    ]);
+    const userId = currentUser?.id;
+    const userRes = await apiFetch(`/account/me?userId=${encodeURIComponent(userId)}`, { method: 'GET' });
+
+    if (!userRes) {
+        return;
+    }
 
     const userPayload = await userRes.json().catch(() => ({}));
-    const subPayload = await subRes.json().catch(() => ({}));
 
     if (!userRes.ok) {
         throw new Error(userPayload.message || 'Impossible de charger le profil.');
     }
 
-    if (!subRes.ok && subRes.status !== 404) {
-        throw new Error(subPayload.message || 'Impossible de charger l\'abonnement.');
-    }
+    currentUser = {
+        ...currentUser,
+        ...userPayload,
+        subscriptionCode: currentUser?.subscriptionCode || userPayload.subscriptionCode || null
+    };
+    localStorage.setItem('tbibi_user', JSON.stringify(currentUser));
 
     updateProfileForm(userPayload);
-    updateSidebar(userPayload, subRes.ok ? subPayload : null);
-    updateSubscription(subRes.ok ? subPayload : null);
+    updateSidebar(currentUser, currentUser?.subscriptionCode);
+    updateSubscription(currentUser?.subscriptionCode);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (!currentUser) {
+        return;
+    }
+
     const logout = document.getElementById('logout-link');
     if (logout) {
         logout.addEventListener('click', () => {
             clearSession();
+            window.location.href = 'login.html';
         });
     }
 
+    const newPasswordInput = document.getElementById('new-password');
+    if (newPasswordInput && !document.getElementById('confirm-password')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mb-3';
+        wrapper.innerHTML = `
+            <label class="form-label" for="confirm-password">Confirmer le nouveau mot de passe</label>
+            <input type="password" class="form-control" id="confirm-password" autocomplete="new-password">
+        `;
+        newPasswordInput.closest('.mb-3')?.after(wrapper);
+    }
+
+    confirmPasswordInput = document.getElementById('confirm-password');
+
     loadAccountData().catch((error) => {
+        console.error(error);
         showAlert(error.message || 'Erreur de chargement du compte.', 'danger');
     });
 
@@ -142,19 +184,32 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await apiFetch('/users/me', {
+            const response = await apiFetch(`/account/me?userId=${encodeURIComponent(currentUser?.id)}`, {
                 method: 'PUT',
                 body: JSON.stringify(payload)
             });
+
+            if (!response) {
+                return;
+            }
 
             const body = await response.json().catch(() => ({}));
             if (!response.ok) {
                 throw new Error(body.message || 'Impossible de mettre à jour le profil.');
             }
 
+            currentUser = {
+                ...currentUser,
+                ...body,
+                ...payload,
+                subscriptionCode: currentUser?.subscriptionCode || body.subscriptionCode || null
+            };
+            localStorage.setItem('tbibi_user', JSON.stringify(currentUser));
+
             showAlert('Profil mis à jour avec succès.');
             await loadAccountData();
         } catch (error) {
+            console.error(error);
             showAlert(error.message || 'Erreur lors de la mise à jour du profil.', 'danger');
         }
     });
@@ -162,17 +217,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('save-password-btn').addEventListener('click', async () => {
         const currentPassword = document.getElementById('current-password').value;
         const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = confirmPasswordInput?.value || '';
 
-        if (!currentPassword || !newPassword) {
+        if (!currentPassword || !newPassword || !confirmPassword) {
             showAlert('Veuillez saisir les deux mots de passe.', 'danger');
             return;
         }
 
+        if (newPassword !== confirmPassword) {
+            showAlert('Les mots de passe ne correspondent pas.', 'danger');
+            return;
+        }
+
         try {
-            const response = await apiFetch('/users/me/password', {
+            const response = await apiFetch(`/account/password?userId=${encodeURIComponent(currentUser?.id)}`, {
                 method: 'PUT',
-                body: JSON.stringify({ currentPassword, newPassword })
+                body: JSON.stringify({
+                    currentPassword,
+                    newPassword
+                })
             });
+
+            if (!response) {
+                return;
+            }
 
             const body = await response.json().catch(() => ({}));
             if (!response.ok) {
@@ -181,8 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('current-password').value = '';
             document.getElementById('new-password').value = '';
+            if (confirmPasswordInput) {
+                confirmPasswordInput.value = '';
+            }
             showAlert('Mot de passe mis à jour avec succès.');
         } catch (error) {
+            console.error(error);
             showAlert(error.message || 'Erreur lors du changement de mot de passe.', 'danger');
         }
     });
