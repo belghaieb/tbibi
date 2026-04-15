@@ -294,7 +294,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             localStorage.setItem('tbibi_user', JSON.stringify(payload));
 
-            window.location.href = 'main.html';
+            // Redirect to payment page so user can confirm their plan
+            // paiement.html will call /checkout-session and then redirect to main.html
+            const price = resolvePlanPrice(selectedSubscription);
+            window.location.href = `paiement.html?plan=${selectedSubscription}&price=${price}`;
         } catch (error) {
             console.error(error);
             showError(error.message || 'Une erreur est survenue pendant l\'inscription.');

@@ -95,16 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // PATIENT → main.html, or paiement.html if coming from pricing page
             const role = (body.role || '').toUpperCase();
 
-            let targetUrl = 'main.html';
-
-            if (role === 'ADMIN') {
-                // Admins never go through the payment flow
-                targetUrl = 'admin.html';
-            } else if (planExists) {
-                // Non-admin coming from the pricing page goes to payment first
-                targetUrl = `paiement.html?plan=${encodeURIComponent(planCode)}&price=${encodeURIComponent(planPrice)}`;
-            }
-
+            const targetUrl = role === 'ADMIN' ? 'admin.html' : 'main.html';
             window.location.href = targetUrl;
         } catch (error) {
             console.error(error);

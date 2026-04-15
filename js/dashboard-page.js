@@ -532,6 +532,16 @@ document.addEventListener('DOMContentLoaded', function() {
         chatInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
     }
 
+    var zoomSlider = document.getElementById('pdf-zoom-slider');
+    var zoomLabel  = document.getElementById('pdf-zoom-label');
+    if (zoomSlider) {
+        zoomSlider.addEventListener('input', function() {
+            var pct = zoomSlider.value + '%';
+            document.getElementById('medical-file-iframe').style.zoom = zoomSlider.value / 100;
+            if (zoomLabel) zoomLabel.textContent = pct;
+        });
+    }
+
     var locateBtn = document.getElementById('locate-medical-btn');
     if (locateBtn) locateBtn.addEventListener('click', locateMedicalPlaces);
 

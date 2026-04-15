@@ -1,5 +1,6 @@
 const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8084/api';
 const ACCESS_TOKEN_KEY = 'tbibi_access_token';
+const REFRESH_TOKEN_KEY = 'tbibi_refresh_token';
 
 let currentUser = getCurrentUser();
 
@@ -145,30 +146,6 @@ async function loadAccountData() {
 document.addEventListener('DOMContentLoaded', () => {
     if (!currentUser) {
         return;
-    }
-
-    const avatarInput = document.getElementById('avatar-upload-input');
-    if (avatarInput) {
-        avatarInput.addEventListener('change', async () => {
-            if (!avatarInput.files.length) return;
-            const fd = new FormData();
-            fd.append('userId', currentUser?.id);
-            fd.append('avatar', avatarInput.files[0]);
-            try {
-                const res = await apiFetch('/uploads/avatar', { method: 'POST', body: fd });
-                if (!res) return;
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(data.message || 'Upload impossible.');
-                if (data.avatarUrl) {
-                    document.getElementById('account-avatar').src = data.avatarUrl;
-                }
-                showAlert('Photo de profil mise à jour.');
-            } catch (err) {
-                showAlert(err.message || 'Erreur lors de l\'upload.', 'danger');
-            } finally {
-                avatarInput.value = '';
-            }
-        });
     }
 
     const logout = document.getElementById('logout-link');

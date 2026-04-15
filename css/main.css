@@ -100,11 +100,11 @@ html, body {
     height: 580px;
     min-height: 200px;
     max-height: 90vh;
-    resize: vertical;
+    resize: both;
     border: 1px solid #eee;
     border-radius: var(--radius);
     overflow: auto;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
     flex-shrink: 0;
     position: relative;
 }

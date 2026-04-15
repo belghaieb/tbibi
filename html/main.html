@@ -53,9 +53,14 @@
                     <div class="current-file-box mb-4 p-3 bg-white rounded shadow-sm">
                         <h6 class="mb-2">Document : <span id="current-file-title" class="text-secondary fw-bold">—</span></h6>
                         
-                        <div class="file-iframe-container mt-3">
-                            <iframe id="medical-file-iframe" 
-                                    src="about:blank" 
+                        <div class="d-flex align-items-center gap-2 mb-2 mt-3">
+                            <i class="bi bi-zoom-in text-muted small"></i>
+                            <input type="range" id="pdf-zoom-slider" min="50" max="200" value="100" step="10" class="form-range" style="width:160px;">
+                            <span id="pdf-zoom-label" class="small text-muted" style="min-width:38px;">100%</span>
+                        </div>
+                        <div class="file-iframe-container">
+                            <iframe id="medical-file-iframe"
+                                    src="about:blank"
                                     title="Visualiseur de document médical">
                             </iframe>
                         </div>
@@ -96,21 +101,21 @@
                 <div class="col-lg-5 p-4 doctor-interaction-area bg-white">
                     
                     <div id="doctor-summary-view" class="d-block">
-                        <h3 class="fw-bold mb-4" id="doctor-title">Chargement…</h3>
-                        
-                        <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
-                            <img id="doctor-avatar-summary" src="../assets/logo.jpg" alt="" class="rounded-circle me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                        <h5 class="fw-bold mb-2" id="doctor-title">Chargement…</h5>
+
+                        <div class="d-flex align-items-center mb-2 p-2 bg-light rounded">
+                            <img id="doctor-avatar-summary" src="../assets/logo.jpg" alt="" class="rounded-circle me-3" style="width: 56px; height: 56px; object-fit: cover;">
                             <div>
-                                <h5 class="mb-0 fw-bold" id="doctor-specialty">—</h5>
+                                <div class="fw-semibold small" id="doctor-specialty">—</div>
                                 <span class="badge bg-secondary" id="doctor-status">—</span>
-                                <span class="badge bg-secondary" id="doctor-experience">—</span>
+                                <span class="badge bg-secondary ms-1" id="doctor-experience">—</span>
                             </div>
                         </div>
 
-                        <p class="lead" id="doctor-description">Sélectionnez un médecin à gauche pour afficher son profil.</p>
-                        
-                        <div class="mt-5 pt-3 border-top">
-                            <button class="btn btn-lg btn-primary w-100 mb-3 fw-bold" onclick="handleAction('Message Direct')">
+                        <p class="small text-muted mb-2" id="doctor-description">Sélectionnez un médecin à gauche pour afficher son profil.</p>
+
+                        <div class="mt-2 pt-2 border-top">
+                            <button class="btn btn-primary w-100 fw-bold" onclick="handleAction('Message Direct')">
                                 <i class="bi bi-chat-left-text-fill me-2"></i> Message Direct (Chat)
                             </button>
                         </div>

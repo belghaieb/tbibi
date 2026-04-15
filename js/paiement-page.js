@@ -90,44 +90,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const submitBtn = document.getElementById('pay-submit-btn');
             if (submitBtn) submitBtn.disabled = true;
 
+            const token = localStorage.getItem(ACCESS_TOKEN_KEY) || '';
+            const userId = (() => { try { return JSON.parse(localStorage.getItem('tbibi_user'))?.id; } catch { return null; } })();
             try {
-                const token = localStorage.getItem(ACCESS_TOKEN_KEY) || '';
-                const response = await fetch(`${API_BASE_URL}/subscriptions/checkout-session`, {
+                const res = await fetch(`${API_BASE_URL}/subscriptions/checkout-session?userId=${userId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         ...(token ? { Authorization: `Bearer ${token}` } : {})
                     },
-                    body: JSON.stringify({ planCode: planCode })
+                    body: JSON.stringify({ planCode })
                 });
-
-                if (response.status === 401) {
-                    localStorage.clear();
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                const data = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    throw new Error(data.message || 'Paiement impossible pour le moment.');
-                }
-
+                const data = await res.json().catch(() => ({}));
                 if (data.checkoutUrl) {
                     window.location.href = data.checkoutUrl;
-                } else {
-                    window.location.href = 'main.html';
+                    return;
                 }
-            } catch (err) {
-                console.error(err);
-                const errorEl = document.getElementById('pay-error');
-                if (errorEl) {
-                    errorEl.textContent = err.message;
-                    errorEl.classList.remove('d-none');
-                } else {
-                    alert(err.message);
-                }
-                if (submitBtn) submitBtn.disabled = false;
+            } catch (_) {
+                // ignore errors — redirect regardless
             }
+
+            window.location.href = 'main.html';
         });
     }
 });
