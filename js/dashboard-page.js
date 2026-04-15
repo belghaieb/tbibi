@@ -182,7 +182,17 @@ async function loadMedicalFiles() {
         item.querySelector('[data-action="delete"]').addEventListener('click', async function() {
             if (!window.confirm('Supprimer ' + file.name + ' ?')) return;
             var res = await apiFetch('/patients/' + currentUserId + '/medical-files/' + file.id, { method: 'DELETE' });
-            if (res && res.ok) { showDashboardNotice('Fichier supprime.'); await loadMedicalFiles(); }
+            if (res && res.ok) {
+                var iframe = document.getElementById('medical-file-iframe');
+                var title  = document.getElementById('current-file-title');
+                if (iframe && iframe.src === lastMedicalBlobUrl) {
+                    if (lastMedicalBlobUrl) { URL.revokeObjectURL(lastMedicalBlobUrl); lastMedicalBlobUrl = null; }
+                    iframe.src = 'about:blank';
+                    if (title) title.textContent = '—';
+                }
+                showDashboardNotice('Fichier supprime.');
+                await loadMedicalFiles();
+            }
         });
         listEl.appendChild(item);
     });
@@ -225,8 +235,7 @@ function attachBookingForm() {
         if (!dt) { fb.innerHTML = '<span class="text-danger">Choisissez une date.</span>'; return; }
         if (!currentPartnerId) { fb.innerHTML = '<span class="text-danger">Selectionnez un medecin.</span>'; return; }
         try {
-            var scheduledAt = dt.length === 16 ? dt + ':00' : dt;
-            var res = await apiFetch('/appointments', { method: 'POST', body: JSON.stringify({ patientId: currentUserId, doctorId: Number(currentPartnerId), scheduledAt: scheduledAt, reason: reason || 'Consultation' }) });
+            var res = await apiFetch('/appointments', { method: 'POST', body: JSON.stringify({ patientId: currentUserId, doctorId: Number(currentPartnerId), scheduledAt: dt, reason: reason || 'Consultation' }) });
             if (!res) return;
             var data = await res.json().catch(function() { return {}; });
             if (!res.ok) throw new Error(data.message || 'Impossible de reserver.');
@@ -376,8 +385,7 @@ function renderChatMessages(messages) {
 
 function connectWebSocket(userId) {
     if (stompClient && stompClient.connected) return;
-    var WS_URL = window.TBIBI_WS_BASE || 'http://localhost:8084/ws';
-    var socket = new SockJS(WS_URL);
+    var socket = new SockJS('http://localhost:8084/ws');
     stompClient = Stomp.over(socket);
     stompClient.debug = null;
     stompClient.connect({}, function() {

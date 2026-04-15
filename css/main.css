@@ -97,12 +97,16 @@ html, body {
     flex-direction: column;
 }
 .file-iframe-container {
-    height: 400px; 
+    height: 580px;
+    min-height: 200px;
+    max-height: 90vh;
+    resize: vertical;
     border: 1px solid #eee;
     border-radius: var(--radius);
-    overflow: hidden;
+    overflow: auto;
     margin-bottom: 20px;
     flex-shrink: 0;
+    position: relative;
 }
 #medical-file-iframe {
     width: 100%;
