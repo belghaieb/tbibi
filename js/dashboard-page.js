@@ -225,7 +225,8 @@ function attachBookingForm() {
         if (!dt) { fb.innerHTML = '<span class="text-danger">Choisissez une date.</span>'; return; }
         if (!currentPartnerId) { fb.innerHTML = '<span class="text-danger">Selectionnez un medecin.</span>'; return; }
         try {
-            var res = await apiFetch('/appointments', { method: 'POST', body: JSON.stringify({ patientId: currentUserId, doctorId: Number(currentPartnerId), scheduledAt: dt, reason: reason || 'Consultation' }) });
+            var scheduledAt = dt.length === 16 ? dt + ':00' : dt;
+            var res = await apiFetch('/appointments', { method: 'POST', body: JSON.stringify({ patientId: currentUserId, doctorId: Number(currentPartnerId), scheduledAt: scheduledAt, reason: reason || 'Consultation' }) });
             if (!res) return;
             var data = await res.json().catch(function() { return {}; });
             if (!res.ok) throw new Error(data.message || 'Impossible de reserver.');
@@ -375,7 +376,8 @@ function renderChatMessages(messages) {
 
 function connectWebSocket(userId) {
     if (stompClient && stompClient.connected) return;
-    var socket = new SockJS('http://localhost:8084/ws');
+    var WS_URL = window.TBIBI_WS_BASE || 'http://localhost:8084/ws';
+    var socket = new SockJS(WS_URL);
     stompClient = Stomp.over(socket);
     stompClient.debug = null;
     stompClient.connect({}, function() {
@@ -488,7 +490,6 @@ function handleAction(action) {
         loadConversation(currentPartnerId);
         return;
     }
-    if (action === 'Consultation Vidéo') showDashboardNotice('Demande de consultation envoyee.');
 }
 window.handleAction = handleAction;
 

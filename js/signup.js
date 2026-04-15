@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     const buildSignupJson = function(selectedSubscription) {
-        return {
+        const body = {
             firstName: firstNameInput.value.trim(),
             lastName: lastNameInput.value.trim(),
             phone: normalizePhone(phoneInput.value.trim()),
@@ -125,6 +125,12 @@ document.addEventListener('DOMContentLoaded', function () {
             role: roleSelect.value.toUpperCase(),
             subscriptionCode: selectedSubscription.toUpperCase()
         };
+        if (roleSelect.value === 'doctor') {
+            body.specialty = (document.getElementById('signupSpecialty')?.value || '').trim() || null;
+            body.experienceYears = parseInt(document.getElementById('signupExperienceYears')?.value || '0', 10) || null;
+            body.bio = (document.getElementById('signupBio')?.value || '').trim() || null;
+        }
+        return body;
     };
 
     const uploadDoctorDocs = async function(doctorId) {
@@ -283,18 +289,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 await uploadPatientFiles(payload.id);
             }
 
-            const storedUser = payload.user || (({ accessToken, refreshToken, ...userFields }) => userFields)(payload);
             if (payload.accessToken) {
                 localStorage.setItem('tbibi_access_token', payload.accessToken);
             }
-            if (storedUser) {
-                localStorage.setItem('tbibi_user', JSON.stringify(storedUser));
-            }
+            localStorage.setItem('tbibi_user', JSON.stringify(payload));
 
-            const planFromUrl = params.get('plan');
-            const planToUse = planFromUrl || selectedSubscription;
-            const planPrice = params.get('price') || resolvePlanPrice(planToUse);
-            window.location.href = `paiement.html?plan=${encodeURIComponent(planToUse)}&price=${encodeURIComponent(planPrice)}`;
+            window.location.href = 'main.html';
         } catch (error) {
             console.error(error);
             showError(error.message || 'Une erreur est survenue pendant l\'inscription.');

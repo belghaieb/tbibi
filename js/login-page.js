@@ -3,7 +3,6 @@
 
 const API_BASE_URL = window.TBIBI_API_BASE || 'http://localhost:8084/api';
 const ACCESS_TOKEN_KEY = 'tbibi_access_token';
-const REFRESH_TOKEN_KEY = 'tbibi_refresh_token';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Only run on the login page.
@@ -51,9 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveSession = (payload) => {
         if (payload.accessToken) {
             localStorage.setItem(ACCESS_TOKEN_KEY, payload.accessToken);
-        }
-        if (payload.refreshToken) {
-            localStorage.setItem(REFRESH_TOKEN_KEY, payload.refreshToken);
         }
         localStorage.setItem('tbibi_user', JSON.stringify(payload));
     };

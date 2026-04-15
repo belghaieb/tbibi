@@ -85,11 +85,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (form) {
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = document.getElementById('pay-submit-btn');
             if (submitBtn) submitBtn.disabled = true;
-            window.location.href = 'main.html';
+
+            try {
+                const token = localStorage.getItem(ACCESS_TOKEN_KEY) || '';
+                const response = await fetch(`${API_BASE_URL}/subscriptions/checkout-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ planCode: planCode })
+                });
+
+                if (response.status === 401) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.message || 'Paiement impossible pour le moment.');
+                }
+
+                if (data.checkoutUrl) {
+                    window.location.href = data.checkoutUrl;
+                } else {
+                    window.location.href = 'main.html';
+                }
+            } catch (err) {
+                console.error(err);
+                const errorEl = document.getElementById('pay-error');
+                if (errorEl) {
+                    errorEl.textContent = err.message;
+                    errorEl.classList.remove('d-none');
+                } else {
+                    alert(err.message);
+                }
+                if (submitBtn) submitBtn.disabled = false;
+            }
         });
     }
 });

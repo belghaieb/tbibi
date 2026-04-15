@@ -138,8 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleInteractionView('chat');
         } else if (actionType === 'BackToSummary') {
             toggleInteractionView('summary');
-        } else if (actionType === 'Consultation Vidéo') {
-            alert('Démarrage de la consultation vidéo avec le docteur...');
         } else if (actionType === 'Planifier RDV') {
             alert('Ouverture du module de planification de RDV...');
         }
