@@ -9,43 +9,91 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body class="page-shell">
-    <header class="main-header p-3 bg-white shadow-sm border-bottom">
-        <div class="d-flex justify-content-between align-items-center container-fluid">
-            <h1 class="logo text-primary fw-bold mb-0">TBIBI</h1>
-            <nav class="d-flex flex-wrap gap-2 justify-content-end">
-                <a href="main.html" class="btn btn-outline-secondary fw-bold"><i class="bi bi-arrow-left me-1"></i> Tableau de bord</a>
-                <a href="manage-account.html" class="btn btn-outline-primary fw-bold"><i class="bi bi-person-gear me-1"></i> Mon compte</a>
-                <a href="login.html" class="btn btn-outline-secondary fw-bold" id="logout-link">Déconnexion</a>
-            </nav>
+
+    <!-- ── Header ─────────────────────────── -->
+    <header class="main-header">
+        <div class="header-logo">
+            <i class="bi bi-heart-pulse-fill header-logo-icon"></i>
+            <span class="header-logo-text">TBIBI</span>
         </div>
+        <nav class="header-nav">
+            <a href="main.html"          class="btn btn-ghost btn-sm"><i class="bi bi-arrow-left me-1"></i>Tableau de bord</a>
+            <a href="manage-account.html" class="btn btn-ghost btn-sm"><i class="bi bi-person-gear me-1"></i>Mon compte</a>
+            <a href="login.html"          class="btn btn-ghost btn-sm" id="logout-link"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</a>
+        </nav>
     </header>
 
-    <main class="container py-5">
+    <main class="container py-4" style="max-width:860px;">
+
+        <!-- ── Page hero ──────────────────── -->
         <section class="page-hero text-center">
-            <div class="eyebrow mb-2">Assistant conversationnel</div>
-            <h2 class="display-6 fw-bold mb-3">Un espace de chat pour guider vos prochaines actions.</h2>
-            <p class="text-muted mx-auto" style="max-width: 780px;">Posez vos questions pour obtenir une orientation médicale générale et une aide de navigation sur la plateforme.</p>
+            <div class="eyebrow">Assistant conversationnel</div>
+            <h2 class="mb-2">Votre assistant médical IA</h2>
+            <p class="text-muted mx-auto" style="max-width:640px;font-size:.94rem;">
+                Posez vos questions pour obtenir une orientation médicale générale et une aide à la navigation sur la plateforme.
+            </p>
         </section>
 
-        <div class="assistant-card p-3 p-md-4">
+        <!-- ── Chat card ───────────────────── -->
+        <div class="assistant-card">
             <div class="assistant-chat-window">
-                <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
+
+                <!-- Chat header -->
+                <div class="assistant-chat-header">
                     <div>
-                        <h5 class="fw-bold mb-1">Assistant TBIBI</h5>
-                        <div class="text-muted small">Support de navigation et aide générale</div>
+                        <h5><i class="bi bi-robot text-primary me-2"></i>Assistant TBIBI</h5>
+                        <div class="text-muted" style="font-size:.78rem;">Support de navigation et aide générale</div>
                     </div>
-                    <span class="badge bg-secondary-subtle text-secondary">Assistant actif</span>
+                    <span class="badge" style="background:var(--success-soft);color:var(--success);font-size:.72rem;font-weight:700;padding:.3rem .65rem;border-radius:8px;">
+                        <i class="bi bi-circle-fill me-1" style="font-size:.45rem;vertical-align:middle;"></i>Actif
+                    </span>
                 </div>
 
+                <!-- Messages -->
                 <div class="assistant-message-stream" id="assistant-message-stream">
-                    <div class="assistant-message bot">Bonjour. Je peux vous orienter vers votre compte, les services proches et le tableau de bord.</div>
-                    <div class="assistant-message bot">Essayez par exemple: “ouvrir mon compte”, “chercher une pharmacie”, ou “comment contacter un médecin ?”.</div>
+                    <div class="assistant-message bot">
+                        Bonjour ! Je peux vous orienter vers votre compte, les services proches et le tableau de bord.
+                    </div>
+                    <div class="assistant-message bot">
+                        Essayez par exemple : <em>"ouvrir mon compte"</em>, <em>"chercher une pharmacie"</em>, ou <em>"comment contacter un médecin ?"</em>
+                    </div>
                 </div>
 
-                <form id="assistant-form" class="input-group mt-3">
-                    <input type="text" class="form-control" id="assistant-input" placeholder="Écrivez votre question..." autocomplete="off">
-                    <button class="btn btn-primary fw-bold" type="submit"><i class="bi bi-send-fill me-1"></i> Envoyer</button>
-                </form>
+                <!-- Input -->
+                <div class="assistant-input-area">
+                    <form id="assistant-form" class="input-group">
+                        <input type="text" class="form-control" id="assistant-input"
+                               placeholder="Écrivez votre question…" autocomplete="off">
+                        <button class="btn btn-primary fw-semibold" type="submit">
+                            <i class="bi bi-send-fill me-1"></i>Envoyer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Quick tips ──────────────────── -->
+        <div class="row g-3 mt-3">
+            <div class="col-md-4">
+                <div class="account-card p-3 text-center" style="cursor:pointer;" onclick="document.getElementById('assistant-input').value='Comment contacter mon médecin ?';document.getElementById('assistant-input').focus();">
+                    <i class="bi bi-chat-dots-fill text-primary d-block mb-2" style="font-size:1.4rem;"></i>
+                    <div style="font-size:.82rem;font-weight:600;">Contacter un médecin</div>
+                    <div class="text-muted" style="font-size:.74rem;">Cliquez pour demander</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="account-card p-3 text-center" style="cursor:pointer;" onclick="document.getElementById('assistant-input').value='Trouver une pharmacie proche';document.getElementById('assistant-input').focus();">
+                    <i class="bi bi-geo-alt-fill text-danger d-block mb-2" style="font-size:1.4rem;"></i>
+                    <div style="font-size:.82rem;font-weight:600;">Services médicaux proches</div>
+                    <div class="text-muted" style="font-size:.74rem;">Cliquez pour demander</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="account-card p-3 text-center" style="cursor:pointer;" onclick="document.getElementById('assistant-input').value='Comment gérer mon abonnement ?';document.getElementById('assistant-input').focus();">
+                    <i class="bi bi-person-gear text-success d-block mb-2" style="font-size:1.4rem;"></i>
+                    <div style="font-size:.82rem;font-weight:600;">Gérer mon compte</div>
+                    <div class="text-muted" style="font-size:.74rem;">Cliquez pour demander</div>
+                </div>
             </div>
         </div>
     </main>
@@ -58,7 +106,7 @@
                 localStorage.removeItem('tbibi_refresh_token');
                 localStorage.removeItem('tbibi_session');
                 localStorage.removeItem('tbibi_user');
-            } catch (e) { /* ignore */ }
+            } catch(e) {}
         });
     </script>
     <script src="../js/assistant-chat.js"></script>

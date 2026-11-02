@@ -3,239 +3,416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TBIBI - Mon espace</title>
-    
+    <title>TBIBI — Mon espace</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
-<body class="bg-light">
+<body>
+<div class="app-wrapper">
 
-    <div class="app-wrapper"> 
-        <header class="main-header p-3 bg-white shadow-sm border-bottom">
-            <div class="d-flex justify-content-between align-items-center container-fluid">
-                <h1 class="logo text-primary fw-bold mb-0">TBIBI </h1>
-                <nav>
-                    <button type="button" class="btn btn-danger me-2 fw-bold" id="emergency-btn">
-                        <i class="bi bi-telephone-fill me-1"></i> Urgence
-                    </button>
-                    <a href="manage-account.html" class="btn btn-outline-primary me-2 fw-bold"><i class="bi bi-person-gear me-1"></i> Mon compte</a>
-                    <a href="assistant.html" class="btn btn-outline-success me-2 fw-bold"><i class="bi bi-robot me-1"></i> Assistant IA</a>
-                    <a href="login.html" class="btn btn-outline-secondary fw-bold" id="logout-link">Déconnexion</a>
-                    <a href="index.html" class="btn btn-outline-secondary fw-bold">Accueil</a>
-                </nav>
-            </div>
-        </header>
+    <!-- ══════════════════ HEADER ══════════════════ -->
+    <header class="main-header">
+        <div class="header-logo">
+            <i class="bi bi-heart-pulse-fill header-logo-icon"></i>
+            <span class="header-logo-text">TBIBI</span>
+        </div>
+        <nav class="header-nav">
+            <button type="button" class="btn btn-danger btn-sm fw-semibold" id="emergency-btn">
+                <i class="bi bi-telephone-fill me-1"></i>Urgence
+            </button>
+            <a href="manage-account.html" class="btn btn-ghost btn-sm">
+                <i class="bi bi-person-gear me-1"></i>Mon compte
+            </a>
+            <a href="assistant.html" class="btn btn-ghost btn-sm">
+                <i class="bi bi-robot me-1"></i>Assistant IA
+            </a>
+            <a href="login.html" class="btn btn-ghost btn-sm" id="logout-link">
+                <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
+            </a>
+        </nav>
+    </header>
 
-        <div class="container-fluid main-dashboard-card p-0 shadow-lg">
-            <div class="row g-0 main-content-row">
-                
-                <div class="col-lg-2 p-0 doctor-messenger-nav border-end">
-                    <h6 class="fw-bold p-3 mb-0 text-center border-bottom text-secondary">
-                        <i class="bi bi-person-circle me-1"></i> Vos Contacts
-                    </h6>
-                    <div class="vertical-doctor-list" id="doctor-list-container">
-                        <div class="p-3 small text-muted" id="doctor-list-placeholder">
-                            Chargement des contacts…
+    <!-- ══════════════════ MAIN LAYOUT ══════════════════ -->
+    <div class="main-dashboard-card">
+        <div class="main-content-row">
+
+            <!-- ── LEFT: Contacts sidebar ───────────────── -->
+            <aside class="doctor-messenger-nav">
+                <div class="sidebar-header">
+                    <i class="bi bi-people-fill me-2 text-primary" style="font-size:.9rem;"></i>
+                    <h6 id="sidebar-section-title">Vos Contacts</h6>
+                </div>
+                <div class="vertical-doctor-list" id="doctor-list-container">
+                    <div class="sidebar-placeholder" id="doctor-list-placeholder">
+                        <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                        Chargement…
+                    </div>
+                    <!-- Reports shortcut -->
+                    <div class="doctor-nav-card reports-card" data-action="reports">
+                        <span class="doctor-nav-icon">
+                            <i class="bi bi-folder2-open text-primary"></i>
+                        </span>
+                        <div>
+                            <span class="d-block fw-semibold" style="font-size:.8rem;">Mes Fichiers Médicaux</span>
+                            <small class="text-muted">Dossier &amp; rapports</small>
                         </div>
-
-                        <div class="doctor-nav-card service-card mt-3" data-action="reports">
-                            <i class="bi bi-file-earmark-bar-graph fs-5 text-warning me-3"></i>
-                            <span class="d-block fw-bold">Rapports & Bilans</span>
+                    </div>
+                    <!-- Appointments shortcut -->
+                    <div class="doctor-nav-card" data-action="appointments">
+                        <span class="doctor-nav-icon">
+                            <i class="bi bi-calendar2-check text-success"></i>
+                        </span>
+                        <div>
+                            <span class="d-block fw-semibold" style="font-size:.8rem;">Mes Rendez-vous</span>
+                            <small class="text-muted">Prochaines consultations</small>
                         </div>
                     </div>
                 </div>
+            </aside>
 
-                <div class="col-lg-5 p-4 file-viewer-area border-end">
-                    <h3 class="fw-bold text-primary mb-3"><i class="bi bi-folder2-open me-2"></i> Mon Dossier Médical</h3>
-                    
-                    <div class="current-file-box mb-4 p-3 bg-white rounded shadow-sm">
-                        <h6 class="mb-2">Document : <span id="current-file-title" class="text-secondary fw-bold">—</span></h6>
-                        
-                        <div class="d-flex align-items-center gap-2 mb-2 mt-3">
-                            <i class="bi bi-zoom-in text-muted small"></i>
-                            <input type="range" id="pdf-zoom-slider" min="50" max="200" value="100" step="10" class="form-range" style="width:160px;">
-                            <span id="pdf-zoom-label" class="small text-muted" style="min-width:38px;">100%</span>
+            <!-- ── MIDDLE: Patient files + Nearby / Doctor appointments ── -->
+            <section class="file-viewer-area">
+
+                <!-- ════ PATIENT MODE: Tab bar (doctor mode replaces this whole section) ════ -->
+                <div class="patient-tab-bar" id="patient-tab-bar">
+                    <button class="ptab active" data-ptab="files">
+                        <i class="bi bi-folder2-open me-1"></i>Dossier Médical
+                    </button>
+                    <button class="ptab" data-ptab="nearby">
+                        <i class="bi bi-calendar3 me-1"></i>Agenda Médecin
+                    </button>
+                    <button class="ptab" data-ptab="map">
+                        <i class="bi bi-geo-alt-fill me-1"></i>Services Proches
+                    </button>
+                </div>
+
+                <!-- ── Tab: Medical files ─────────────────── -->
+                <div class="patient-panel" id="ptab-files">
+
+                    <div class="panel-heading">
+                        <i class="bi bi-folder2-open panel-heading-icon"></i>
+                        <h4 class="panel-heading-title">Mes Fichiers Médicaux</h4>
+                    </div>
+
+                    <!-- PDF viewer (hidden until a file is opened) -->
+                    <div class="viewer-card" id="file-viewer-box" style="display:none;">
+                        <div class="viewer-card-header">
+                            <div class="viewer-file-name">
+                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                <span id="current-file-title" class="fw-semibold">—</span>
+                            </div>
+                            <div class="viewer-controls">
+                                <i class="bi bi-zoom-in text-muted" style="font-size:.8rem;"></i>
+                                <input type="range" id="pdf-zoom-slider" min="50" max="200" value="100" step="10"
+                                       class="zoom-slider">
+                                <span id="pdf-zoom-label" class="zoom-label">100%</span>
+                                <button class="btn btn-close-viewer" id="close-viewer-btn" title="Fermer">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="file-iframe-container">
-                            <iframe id="medical-file-iframe"
-                                    src="about:blank"
-                                    title="Visualiseur de document médical">
-                            </iframe>
+                            <iframe id="medical-file-iframe" src="about:blank"
+                                    title="Visualiseur de document médical"></iframe>
                         </div>
                     </div>
-                    
-                    <h5 class="fw-bold mt-4 mb-3">Historique des Fichiers</h5>
-                    <div class="file-history-list list-group list-group-flush" id="file-history-list">
-                        <div class="list-group-item text-muted small" id="file-history-empty">Aucun fichier pour le moment.</div>
-                    </div>
-                    
-                    <input type="file" id="medical-file-upload" class="d-none" accept=".pdf,.jpg,.jpeg,.png,.dcm" multiple>
-                    <button type="button" class="btn btn-success w-100 mt-4 fw-bold" id="medical-upload-btn">
-                        <i class="bi bi-cloud-arrow-up-fill me-2"></i> Télécharger un nouveau fichier
-                    </button>
 
-                    <div class="medical-nearby-card mt-4 p-3 bg-white rounded shadow-sm">
-                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                            <div>
-                                <h5 class="fw-bold mb-1"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Services médicaux proches</h5>
-                                <p class="text-muted small mb-0">Hôpitaux, pharmacies et cabinets médicaux autour de votre position.</p>
+                    <!-- File history list -->
+                    <div class="file-history-section">
+                        <div class="section-title-row">
+                            <span class="section-title">
+                                <i class="bi bi-clock-history me-2 text-primary"></i>Historique des fichiers
+                            </span>
+                            <label class="btn btn-sm btn-primary-soft fw-semibold"
+                                   for="medical-file-upload" id="medical-upload-btn">
+                                <i class="bi bi-cloud-arrow-up me-1"></i>Ajouter
+                            </label>
+                            <input type="file" id="medical-file-upload" class="d-none"
+                                   accept=".pdf,.jpg,.jpeg,.png,.dcm" multiple>
+                        </div>
+                        <div class="file-list list-group list-group-flush" id="file-history-list">
+                            <div class="file-empty-state" id="file-history-empty">
+                                <i class="bi bi-inbox fs-4 d-block mb-2 text-muted"></i>
+                                Aucun fichier pour le moment.
                             </div>
-                            <button class="btn btn-outline-primary btn-sm fw-bold" id="locate-medical-btn" type="button">
-                                <i class="bi bi-crosshair me-1"></i> Me localiser
-                            </button>
                         </div>
+                    </div>
 
-                        <div id="medical-location-status" class="small text-muted mt-3">
-                            Autorisez la géolocalisation pour lancer la recherche.
-                        </div>
+                </div><!-- /ptab-files -->
 
-                        <div id="nearby-map" style="height:280px;border-radius:10px;display:none;" class="mt-3"></div>
-                        <div id="medical-results-grid" class="medical-results-grid mt-3">
-                            <div class="medical-empty-state">Aucun résultat pour le moment.</div>
+                <!-- ── Tab: Doctor Agenda ─────────────────── -->
+                <div class="patient-panel d-none" id="ptab-nearby">
+
+                    <div class="panel-heading">
+                        <i class="bi bi-calendar3 panel-heading-icon"></i>
+                        <h4 class="panel-heading-title">Agenda du Médecin</h4>
+                    </div>
+
+                    <!-- No doctor selected -->
+                    <div id="agenda-no-doctor" class="text-center py-5">
+                        <i class="bi bi-person-lines-fill d-block mb-3" style="font-size:2.5rem;color:var(--border)"></i>
+                        <p class="text-muted">Sélectionnez un médecin pour voir son agenda</p>
+                    </div>
+
+                    <!-- Agenda week view (shown when doctor selected) -->
+                    <div id="agenda-view" class="d-none">
+                        <div class="agenda-nav d-flex align-items-center justify-content-between mb-3">
+                            <button class="avail-cal-nav" id="agenda-prev-btn"><i class="bi bi-chevron-left"></i></button>
+                            <span class="fw-semibold" id="agenda-week-label" style="color:var(--teal)">—</span>
+                            <button class="avail-cal-nav" id="agenda-next-btn"><i class="bi bi-chevron-right"></i></button>
                         </div>
+                        <div id="agenda-week-grid" class="agenda-week-grid">
+                            <!-- filled by JS -->
+                        </div>
+                    </div>
+
+                </div><!-- /ptab-nearby -->
+
+                <!-- ── Tab: Services Médicaux Proches (Map) ── -->
+                <div class="patient-panel d-none" id="ptab-map">
+
+                    <div class="panel-heading d-flex align-items-center gap-2">
+                        <i class="bi bi-geo-alt-fill panel-heading-icon"></i>
+                        <h4 class="panel-heading-title mb-0">Services Médicaux Proches</h4>
+                        <button class="btn btn-sm btn-primary ms-auto fw-semibold" id="map-locate-btn">
+                            <i class="bi bi-crosshair me-1"></i>Me localiser
+                        </button>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="map-legend">
+                        <span class="map-legend-item"><span class="map-dot" style="background:#e63946"></span>Hôpital</span>
+                        <span class="map-legend-item"><span class="map-dot" style="background:#0d6efd"></span>Clinique</span>
+                        <span class="map-legend-item"><span class="map-dot" style="background:#28a745"></span>Pharmacie</span>
+                        <span class="map-legend-item"><span class="map-dot" style="background:#0aa896"></span>Cabinet médical</span>
+                        <span class="map-legend-item"><span class="map-dot" style="background:#fd7e14"></span>Dentiste</span>
+                        <span class="map-legend-item"><span class="map-dot" style="background:#6c757d"></span>Autre</span>
+                    </div>
+
+                    <div id="map-status" class="text-muted small mb-2 px-1">
+                        Cliquez sur <strong>Me localiser</strong> pour voir les services médicaux dans un rayon de 3 km.
+                    </div>
+
+                    <div id="nearby-map-container" style="height:380px;border-radius:12px;overflow:hidden;border:1px solid var(--border);"></div>
+
+                    <!-- Facilities list sorted by distance -->
+                    <div id="nearby-facilities-list" class="mt-3" style="display:none;">
+                        <h6 class="fw-semibold mb-2" style="font-size:.85rem;color:var(--text-2);">
+                            <i class="bi bi-list-ul me-1"></i>Services classifiés par distance
+                        </h6>
+                        <div id="nearby-facilities-rows"></div>
+                    </div>
+
+                </div><!-- /ptab-map -->
+
+            </section><!-- /file-viewer-area -->
+
+            <!-- ── RIGHT: Doctor profile / Chat ─────────── -->
+            <aside class="doctor-interaction-area">
+
+                <!-- Doctor / Own profile summary -->
+                <div id="doctor-summary-view">
+
+                    <div class="profile-header">
+                        <img id="doctor-avatar-summary" src="../assets/logo.jpg" alt="Avatar" class="profile-avatar">
+                        <div class="profile-info">
+                            <h5 class="profile-name" id="doctor-title">Chargement…</h5>
+                            <div class="profile-specialty" id="doctor-specialty">—</div>
+                            <div class="d-flex gap-1 flex-wrap mt-1">
+                                <span class="badge badge-status" id="doctor-status">—</span>
+                                <span class="badge badge-exp"    id="doctor-experience">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-bio">
+                        <p id="doctor-description">Sélectionnez un médecin à gauche pour afficher son profil.</p>
+                    </div>
+
+                    <div class="profile-actions">
+                        <button class="btn btn-primary w-100 fw-semibold" onclick="handleAction('Message Direct')">
+                            <i class="bi bi-chat-left-text-fill me-2"></i>Message Direct
+                        </button>
+                        <button class="btn btn-outline-primary w-100 fw-semibold mt-2" id="book-appt-btn">
+                            <i class="bi bi-calendar-check me-2"></i>Prendre rendez-vous
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat view (hidden by default) -->
+                <div id="chat-view" class="d-none">
+                    <div class="chat-header">
+                        <button class="btn btn-sm btn-ghost" onclick="handleAction('BackToSummary')">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <span class="chat-with-name">
+                            <i class="bi bi-chat-dots-fill text-primary me-1"></i>
+                            <span id="chat-doctor-name">—</span>
+                        </span>
+                        <span></span>
+                    </div>
+                    <div class="chat-messages-container"></div>
+                    <div class="chat-input-area">
+                        <input type="file" id="chat-image-input" accept="image/*" style="display:none">
+                        <button class="btn btn-outline-secondary" id="chat-image-btn" title="Envoyer une photo">
+                            <i class="bi bi-image"></i>
+                        </button>
+                        <input type="text" class="form-control chat-input" id="chat-input-field"
+                               placeholder="Écrivez votre message…">
+                        <button class="btn btn-primary chat-send-btn" id="chat-send-btn">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
                     </div>
                 </div>
 
-                <div class="col-lg-5 p-4 doctor-interaction-area bg-white">
-                    
-                    <div id="doctor-summary-view" class="d-block">
-                        <h5 class="fw-bold mb-2" id="doctor-title">Chargement…</h5>
-
-                        <div class="d-flex align-items-center mb-2 p-2 bg-light rounded">
-                            <img id="doctor-avatar-summary" src="../assets/logo.jpg" alt="" class="rounded-circle me-3" style="width: 56px; height: 56px; object-fit: cover;">
-                            <div>
-                                <div class="fw-semibold small" id="doctor-specialty">—</div>
-                                <span class="badge bg-secondary" id="doctor-status">—</span>
-                                <span class="badge bg-secondary ms-1" id="doctor-experience">—</span>
-                            </div>
-                        </div>
-
-                        <p class="small text-muted mb-2" id="doctor-description">Sélectionnez un médecin à gauche pour afficher son profil.</p>
-
-                        <div class="mt-2 pt-2 border-top">
-                            <button class="btn btn-primary w-100 fw-bold" onclick="handleAction('Message Direct')">
-                                <i class="bi bi-chat-left-text-fill me-2"></i> Message Direct (Chat)
-                            </button>
-                        </div>
+                <!-- AI Assistant shortcut -->
+                <div class="ai-card">
+                    <div class="ai-card-icon"><i class="bi bi-robot"></i></div>
+                    <div class="ai-card-body">
+                        <div class="ai-card-title">Assistant IA</div>
+                        <div class="ai-card-desc">Questions générales et navigation dans la plateforme.</div>
                     </div>
-                    
-                    <div id="chat-view" class="d-none h-100 d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3 flex-shrink-0">
-                            <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="handleAction('BackToSummary')">
-                                <i class="bi bi-arrow-left"></i> Retour
-                            </button>
-                            <h5 class="mb-0 fw-bold text-primary">Chat avec <span id="chat-doctor-name">—</span></h5>
-                            <span></span>
-                        </div>
-                        
-                        <div class="chat-messages-container mb-3 flex-grow-1"></div>
-                        
-                        <div class="chat-input-area input-group flex-shrink-0">
-                            <input type="text" class="form-control" placeholder="Écrivez votre message..." id="chat-input-field">
-                            <button class="btn btn-primary" type="button" id="chat-send-btn"><i class="bi bi-send-fill"></i> Envoyer</button>
-                        </div>
-                    </div>
-
-                    <div class="assistant-preview-card mt-4 p-4 rounded-4 border bg-light-subtle">
-                        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                            <div>
-                                <h5 class="fw-bold mb-1">Assistant IA</h5>
-                                <p class="text-muted mb-0">Accédez à un espace de chat dédié pour vos questions générales et l’orientation dans la plateforme.</p>
-                            </div>
-                            <a class="btn btn-success fw-bold" href="assistant.html"><i class="bi bi-arrow-right-circle me-1"></i> Ouvrir</a>
-                        </div>
-                    </div>
+                    <a href="assistant.html" class="btn btn-sm btn-success fw-semibold">
+                        Ouvrir <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
                 </div>
 
-            </div>
-        </div>
-        
-    </div>
 
-    <div class="modal fade" id="emergencyModal" tabindex="-1" aria-labelledby="emergencyModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content emergency-modal">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold text-danger" id="emergencyModalLabel">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Emergency Numbers in Tunisia
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body pt-0">
-                    <p class="text-muted mb-4">
-                        Emergency services are available 24/7. Operators can usually assist in Arabic and French.
-                        Tunisia country code: <strong>+216</strong>
-                    </p>
-
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="emergency-number-card p-3 h-100">
-                                <div class="small text-muted">Police</div>
-                                <div class="fs-3 fw-bold text-danger">197</div>
-                                <div class="small">24/7 emergency response</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="emergency-number-card p-3 h-100">
-                                <div class="small text-muted">Ambulance (SAMU)</div>
-                                <div class="fs-3 fw-bold text-danger">190</div>
-                                <div class="small">Medical transport and assistance</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="emergency-number-card p-3 h-100">
-                                <div class="small text-muted">Fire Department</div>
-                                <div class="fs-3 fw-bold text-danger">198</div>
-                                <div class="small">Fire and rescue services</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="emergency-number-card p-3 h-100">
-                                <div class="small text-muted">Night Ambulance</div>
-                                <div class="fs-3 fw-bold text-danger">71 717 171</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="emergency-number-card p-3 h-100">
-                                <div class="small text-muted">Anti-Poison Center</div>
-                                <div class="fs-3 fw-bold text-danger">71 335 500</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="emergency-number-card p-3 h-100">
-                                <div class="small text-muted">Search & Rescue (MRCC)</div>
-                                <div class="fs-3 fw-bold text-danger">71 560 240</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-warning mt-4 mb-0" role="alert">
-                        If this is a real emergency, call the appropriate number immediately.
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
-        <div id="dashboard-toast" class="toast align-items-center text-bg-dark border-0" role="status" aria-live="polite">
-            <div class="d-flex">
-                <div class="toast-body small" id="dashboard-toast-body"></div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
-            </div>
+            </aside>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    <script src="../js/dashboard-page.js"></script>
+<!-- ══════ Emergency Modal ══════ -->
+<div class="modal fade" id="emergencyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content emergency-modal">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Numéros d'urgence — Tunisie
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-4">Services disponibles 24h/24. Indicatif : <strong>+216</strong></p>
+                <div class="row g-3">
+                    <div class="col-md-4"><div class="emergency-card h-100">
+                        <div class="emergency-label">Police</div>
+                        <div class="emergency-number">197</div>
+                        <div class="emergency-desc">Intervention d'urgence 24/7</div>
+                    </div></div>
+                    <div class="col-md-4"><div class="emergency-card h-100">
+                        <div class="emergency-label">Ambulance (SAMU)</div>
+                        <div class="emergency-number">190</div>
+                        <div class="emergency-desc">Transport &amp; assistance médicale</div>
+                    </div></div>
+                    <div class="col-md-4"><div class="emergency-card h-100">
+                        <div class="emergency-label">Pompiers</div>
+                        <div class="emergency-number">198</div>
+                        <div class="emergency-desc">Incendie &amp; secours</div>
+                    </div></div>
+                    <div class="col-md-4"><div class="emergency-card h-100">
+                        <div class="emergency-label">Ambulance de nuit</div>
+                        <div class="emergency-number" style="font-size:1.4rem;">71 717 171</div>
+                    </div></div>
+                    <div class="col-md-4"><div class="emergency-card h-100">
+                        <div class="emergency-label">Centre Anti-Poison</div>
+                        <div class="emergency-number" style="font-size:1.4rem;">71 335 500</div>
+                    </div></div>
+                    <div class="col-md-4"><div class="emergency-card h-100">
+                        <div class="emergency-label">Recherche &amp; Sauvetage</div>
+                        <div class="emergency-number" style="font-size:1.4rem;">71 560 240</div>
+                    </div></div>
+                </div>
+                <div class="alert alert-warning mt-4 mb-0 small">
+                    En cas d'urgence réelle, appelez immédiatement le numéro approprié.
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ Booking Modal ══════ -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-1">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-calendar-check text-primary me-2"></i>Prendre rendez-vous
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-1">
+                <p class="fw-semibold text-primary mb-3" id="booking-doctor-name"></p>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Date</label>
+                    <input type="date" class="form-control" id="booking-date">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Heure disponible</label>
+                    <div id="booking-time-slots" class="d-flex flex-wrap gap-2 mt-1"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Motif de consultation</label>
+                    <textarea class="form-control" id="booking-reason" rows="2"
+                              placeholder="Décrivez brièvement votre motif…"></textarea>
+                </div>
+
+                <div id="booking-message" class="alert d-none mb-0"></div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary fw-semibold" id="booking-submit-btn">
+                    <i class="bi bi-calendar-check me-1"></i>Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ Toast ══════ -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1090">
+    <div id="dashboard-toast" class="toast align-items-center border-0 text-bg-dark" role="status" aria-live="polite">
+        <div class="d-flex">
+            <div class="toast-body small" id="dashboard-toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<!-- Patient tab switching (before dashboard-page.js so the function is available) -->
+<script>
+    function switchPatientTab(tabName) {
+        document.querySelectorAll('.ptab').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.patient-panel').forEach(function(p) { p.classList.add('d-none'); });
+        var btn = document.querySelector('.ptab[data-ptab="' + tabName + '"]');
+        var panel = document.getElementById('ptab-' + tabName);
+        if (btn)   btn.classList.add('active');
+        if (panel) panel.classList.remove('d-none');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.ptab').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                switchPatientTab(btn.getAttribute('data-ptab'));
+            });
+        });
+    });
+</script>
+
+<script src="../js/dashboard-page.js"></script>
 </body>
 </html>

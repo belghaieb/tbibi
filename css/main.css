@@ -1,285 +1,2141 @@
-/* File: ../css/stylemain.css */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:ital,opsz,wght@0,6..7.5,300;0,6..7.5,400;0,6..7.5,500;0,6..7.5,600;0,6..7.5,700;1,6..7.5,400&display=swap');
 
-/* --- Custom Variables (Theme Consistency) --- */
+/* ═══════════════════════════════════════════════════════════
+   TBIBI — Healing UI System  v2.0
+   Direction: "Calm Waters" — a medical space that breathes
+   ═══════════════════════════════════════════════════════════ */
+
 :root {
-    --primary: #0068c9;
-    --success: #08b158;
-    --accent: #ff8a34;
-    --text-dark: #1e1e1e;
-    --app-bg-light: #f5f7fa;
-    --card-bg: #ffffff;
-    --radius: 12px;
-    --transition: 0.25s ease;
+    /* ── Core palette — soft, healing blues & greens ── */
+    --primary:        #1a6fc4;
+    --primary-dark:   #0f52a0;
+    --primary-mid:    #2a85db;
+    --primary-soft:   #eaf3fc;
+    --primary-glow:   rgba(26,111,196,.15);
+
+    --teal:           #0a9396;
+    --teal-soft:      #e0f5f5;
+
+    --sage:           #2da771;
+    --sage-soft:      #e7f7ef;
+    --sage-dark:      #1e8556;
+
+    --accent:         #f4845f;
+    --accent-soft:    #fef0eb;
+    --danger:         #e05252;
+    --warning:        #f6a623;
+
+    /* ── Neutrals — warm, never cold grey ── */
+    --text-1:         #0e1c2f;
+    --text-2:         #2a3d55;
+    --text-3:         #64748b;
+    --text-4:         #94a3b8;
+
+    /* ── Surfaces ── */
+    --border:         #dde5f0;
+    --border-soft:    #edf2f9;
+    --bg-page:        #f0f5fc;
+    --bg-panel:       #f8fafd;
+    --bg-mesh:        #ecf2fb;
+    --white:          #ffffff;
+
+    /* ── Radii ── */
+    --radius-xs:      6px;
+    --radius-s:       10px;
+    --radius:         14px;
+    --radius-l:       20px;
+    --radius-xl:      26px;
+
+    /* ── Shadows — warmer, layered ── */
+    --shadow-xs:      0 1px 2px rgba(14,28,47,.05);
+    --shadow-s:       0 2px 8px rgba(14,28,47,.07), 0 1px 2px rgba(14,28,47,.04);
+    --shadow:         0 4px 20px rgba(14,28,47,.09), 0 1px 4px rgba(14,28,47,.05);
+    --shadow-l:       0 12px 40px rgba(14,28,47,.11), 0 3px 10px rgba(14,28,47,.06);
+    --shadow-xl:      0 24px 64px rgba(14,28,47,.13), 0 4px 14px rgba(14,28,47,.07);
+    --shadow-blue:    0 8px 28px rgba(26,111,196,.2);
+    --shadow-sage:    0 8px 24px rgba(45,167,113,.18);
+
+    /* ── Layout ── */
+    --header-h:       60px;
+    --sidebar-w:      244px;
+    --right-w:        320px;
+
+    /* ── Motion ── */
+    --ease:           cubic-bezier(.4,0,.2,1);
+    --ease-spring:    cubic-bezier(.34,1.56,.64,1);
+    --t:              .22s var(--ease);
+    --t-slow:         .4s var(--ease);
+
+    /* ── Typography ── */
+    --font-head:      'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+    --font-body:      'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
 }
 
-/* --- Global & Layout Reset --- */
+/* ───────────────────────────────────────────────
+   RESET & BASE
+─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 html, body {
     height: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: "Inter", "Segoe UI", sans-serif;
-    color: var(--text-dark);
-}
-.app-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-.main-dashboard-card {
-    flex-grow: 1;
-    background-color: var(--card-bg);
-    border-radius: var(--radius);
-    overflow: hidden; 
-    margin: 0 auto;
-    width: 95%; 
-    max-width: 1400px;
-    margin-bottom: 30px;
-    display: flex;
-}
-.page-shell {
-    min-height: 100vh;
-    background:
-        radial-gradient(circle at top left, rgba(0, 104, 201, 0.08), transparent 30%),
-        radial-gradient(circle at top right, rgba(8, 177, 88, 0.08), transparent 26%),
-        linear-gradient(180deg, #f7fbff 0%, #f4f7fb 100%);
-}
-.main-content-row {
-    flex-grow: 1;
-    /* Calculate remaining height based on header, margin, and padding */
-    min-height: calc(100vh - 120px); 
-    width: 100%;
-    display: flex; /* Ensure the three columns stretch */
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text-1);
+    background: var(--bg-page);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- Left Column: Doctor Navigation --- */
-.doctor-messenger-nav {
-    background-color: var(--app-bg-light);
-    height: 100%;
+/* ── Animated background ── */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 15% 0%,  rgba(26,111,196,.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 90% 100%, rgba(45,167,113,.06) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 50%,  rgba(10,147,150,.03) 0%, transparent 70%),
+        linear-gradient(160deg, #eef4fc 0%, #f3f8fd 50%, #edf5f0 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ───────────────────────────────────────────────
+   APP SHELL
+─────────────────────────────────────────────── */
+.app-wrapper {
+    height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
 }
+
+/* ───────────────────────────────────────────────
+   HEADER
+─────────────────────────────────────────────── */
+.main-header {
+    height: var(--header-h);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+    position: relative;
+    z-index: 30;
+    /* Glassmorphism */
+    background: rgba(255,255,255,.82);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(221,229,240,.7);
+    box-shadow: 0 1px 0 rgba(221,229,240,.5), 0 2px 20px rgba(14,28,47,.05);
+}
+
+/* Calming top gradient bar */
+.main-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--teal), var(--sage), var(--teal), var(--primary));
+    background-size: 200% 100%;
+    animation: headerFlow 8s ease-in-out infinite;
+    opacity: .8;
+}
+
+@keyframes headerFlow {
+    0%   { background-position: 0% 0%; }
+    50%  { background-position: 100% 0%; }
+    100% { background-position: 0% 0%; }
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+.header-logo-icon {
+    font-size: 1.2rem;
+    color: var(--primary);
+    filter: drop-shadow(0 0 6px rgba(26,111,196,.3));
+    animation: heartbeat 3s ease-in-out infinite;
+}
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14%       { transform: scale(1.08); }
+    28%       { transform: scale(1); }
+    42%       { transform: scale(1.04); }
+    56%       { transform: scale(1); }
+}
+.header-logo-text {
+    font-family: var(--font-head);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+}
+
+.header-nav {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-2);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: var(--radius-s);
+    transition: all var(--t);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    gap: 4px;
+}
+.btn-ghost:hover {
+    background: var(--primary-soft);
+    border-color: rgba(26,111,196,.15);
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+/* ───────────────────────────────────────────────
+   MAIN DASHBOARD CARD
+─────────────────────────────────────────────── */
+.main-dashboard-card {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    margin: 12px;
+    border-radius: var(--radius-xl);
+    background: var(--white);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    animation: cardReveal .5s var(--ease) both;
+}
+@keyframes cardReveal {
+    from { opacity: 0; transform: translateY(10px) scale(.99); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.main-content-row {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+}
+
+/* ───────────────────────────────────────────────
+   LEFT SIDEBAR
+─────────────────────────────────────────────── */
+.doctor-messenger-nav {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #fafcff 0%, #f5f9ff 100%);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 16px 13px;
+    border-bottom: 1px solid var(--border-soft);
+    flex-shrink: 0;
+    gap: 7px;
+    background: rgba(255,255,255,.6);
+}
+.sidebar-header h6 {
+    font-family: var(--font-head);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--text-3);
+    margin: 0;
+}
+
 .vertical-doctor-list {
+    flex: 1 1 0;
+    min-height: 0;
     overflow-y: auto;
-    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0 6px;
+    gap: 2px;
 }
-.doctor-avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #ddd;
+.vertical-doctor-list::-webkit-scrollbar { width: 3px; }
+.vertical-doctor-list::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
 }
+
+.sidebar-placeholder {
+    padding: 18px 16px;
+    color: var(--text-3);
+    font-size: 0.79rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Doctor / Patient card */
 .doctor-nav-card {
     display: flex;
     align-items: center;
-    padding: 12px 15px;
+    gap: 10px;
+    padding: 9px 12px 9px 14px;
     cursor: pointer;
-    transition: background-color var(--transition), border-left var(--transition);
-    border-left: 4px solid transparent;
+    border-left: 3px solid transparent;
+    transition: background var(--t), border-color var(--t), transform var(--t), box-shadow var(--t);
+    position: relative;
+    margin: 0 8px;
+    border-radius: 0 var(--radius-s) var(--radius-s) 0;
 }
 .doctor-nav-card:hover {
-    background-color: rgba(0, 104, 201, 0.05); 
+    background: var(--primary-soft);
+    transform: translateX(3px);
+    box-shadow: inset 0 0 0 1px rgba(26,111,196,.08);
 }
-.active-doctor {
-    background-color: rgba(0, 104, 201, 0.1);
-    border-left: 4px solid var(--primary);
-}
-.active-doctor .doctor-avatar {
-    border-color: var(--primary);
+.doctor-nav-card.active-doctor {
+    background: linear-gradient(135deg, var(--primary-soft), rgba(26,111,196,.06));
+    border-left-color: var(--primary);
+    box-shadow: inset 0 0 0 1px rgba(26,111,196,.1);
 }
 
-/* --- Middle Column: File Viewer --- */
+.doctor-nav-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-s);
+    background: var(--border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.doctor-avatar {
+    width: 37px;
+    height: 37px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    transition: border-color var(--t), box-shadow var(--t);
+}
+.doctor-nav-card.active-doctor .doctor-avatar {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.doctor-nav-card .d-block  { font-size: 0.8rem; font-weight: 600; color: var(--text-1); }
+.doctor-nav-card small     { font-size: 0.72rem; }
+
+.reports-card {
+    margin-top: auto;
+    border-top: 1px solid var(--border-soft);
+    border-radius: 0;
+    margin: auto 0 0;
+    background: linear-gradient(135deg, rgba(45,167,113,.05), rgba(26,111,196,.05));
+    padding: 11px 14px;
+}
+.reports-card:hover {
+    background: linear-gradient(135deg, var(--sage-soft), var(--primary-soft));
+    transform: none;
+}
+
+/* ───────────────────────────────────────────────
+   MIDDLE PANEL
+─────────────────────────────────────────────── */
 .file-viewer-area {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
     overflow-y: auto;
-    background-color: #f9f9f9;
-    height: 100%;
     display: flex;
     flex-direction: column;
+    border-right: 1px solid var(--border);
+    background:
+        radial-gradient(ellipse 80% 50% at 80% 10%, rgba(26,111,196,.05), transparent 55%),
+        radial-gradient(ellipse 50% 60% at 10% 90%, rgba(45,167,113,.04), transparent 50%),
+        var(--bg-panel);
+}
+.file-viewer-area::-webkit-scrollbar { width: 4px; }
+.file-viewer-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* Patient tab bar */
+.patient-tab-bar {
+    display: flex;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    padding: 0 10px;
+}
+.ptab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 13px 16px;
+    font-family: var(--font-body);
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--text-3);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color var(--t), border-color var(--t);
+    white-space: nowrap;
+}
+.ptab:hover { color: var(--primary); }
+.ptab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* Patient panels */
+.patient-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    animation: panelIn .3s var(--ease) both;
+}
+@keyframes panelIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.patient-panel::-webkit-scrollbar { width: 4px; }
+.patient-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.patient-panel.d-none { display: none !important; }
+
+.panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.panel-heading-icon { font-size: 1.1rem; color: var(--primary); }
+.panel-heading-title {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-1);
+    margin: 0;
+}
+
+/* Doctor mode spacers */
+.file-viewer-area > h3 {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 16px 18px 0;
+}
+#appt-filter-tabs  { padding: 0 18px; }
+#appointments-container { padding: 0 18px 18px; overflow-y: auto; }
+
+/* ── PDF Viewer ── */
+.viewer-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    animation: panelIn .35s var(--ease) both;
+}
+.viewer-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    background: linear-gradient(135deg, #fafcff, #f5f8fd);
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.viewer-file-name {
+    display: flex;
+    align-items: center;
+    font-size: 0.81rem;
+    font-weight: 600;
+    color: var(--text-2);
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.viewer-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    font-size: 0.77rem;
+    color: var(--text-3);
+}
+.zoom-slider {
+    width: 90px;
+    accent-color: var(--primary);
+}
+.zoom-label {
+    min-width: 34px;
+    font-size: 0.77rem;
+    color: var(--text-3);
+}
+.btn-close-viewer {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    color: var(--text-3);
+    padding: 3px 8px;
+    font-size: 0.74rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all var(--t);
+}
+.btn-close-viewer:hover {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+    transform: scale(1.05);
 }
 .file-iframe-container {
-    height: 580px;
-    min-height: 200px;
-    max-height: 90vh;
-    resize: both;
-    border: 1px solid #eee;
-    border-radius: var(--radius);
+    height: 380px;
+    min-height: 120px;
+    max-height: 68vh;
+    resize: vertical;
     overflow: auto;
-    margin-bottom: 8px;
-    flex-shrink: 0;
-    position: relative;
+    background: #fff;
 }
 #medical-file-iframe {
     width: 100%;
     height: 100%;
     border: none;
-    background-color: #fff;
+    display: block;
 }
 
-/* --- Right Column: Interaction/Chat Area --- */
-.doctor-interaction-area {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-.chat-messages-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-}
-.message {
-    max-width: 75%;
-    padding: 10px 15px;
+/* ── File history ── */
+.file-history-section {
+    background: var(--white);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
-    margin-bottom: 15px;
-    line-height: 1.4;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+    box-shadow: var(--shadow-s);
 }
-.doctor-message {
-    background-color: #e6f7ff; 
-    border-top-left-radius: 4px;
-    margin-right: auto;
+.section-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-soft);
+    background: linear-gradient(135deg, #fafcff, #f6f9fd);
+    gap: 8px;
 }
-.patient-message {
-    background-color: var(--primary);
-    color: white;
-    border-top-right-radius: 4px;
-    margin-left: auto;
+.section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    font-family: var(--font-body);
 }
-.chat-input-area {
-    margin-top: auto; 
+.btn-primary-soft {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid rgba(26,111,196,.2);
+    border-radius: var(--radius-s);
+    font-size: 0.77rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all var(--t);
+    white-space: nowrap;
+}
+.btn-primary-soft:hover {
+    background: var(--primary);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-blue);
 }
 
-.medical-nearby-card {
-    border: 1px solid rgba(0, 0, 0, 0.06);
+.file-list { margin: 0; }
+.file-list .list-group-item {
+    padding: 10px 15px;
+    border-color: var(--border-soft);
+    font-size: 0.81rem;
+    transition: background var(--t), transform var(--t);
 }
+.file-list .list-group-item:hover {
+    background: var(--primary-soft);
+    transform: translateX(3px);
+}
+.file-list .list-group-item .d-block { font-weight: 600; font-size: 0.81rem; }
+.file-list .list-group-item small { color: var(--text-3); font-size: 0.73rem; }
+.file-empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-3);
+    font-size: 0.81rem;
+}
+
+/* ── Nearby Medical ── */
+.nearby-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-s);
+}
+.nearby-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.nearby-desc   { font-size: 0.77rem; color: var(--text-3); margin-top: 2px; }
+.nearby-status { font-size: 0.77rem; color: var(--text-3); margin-top: 8px; }
+
 .medical-results-grid {
     display: grid;
-    gap: 0.85rem;
-}
-.medical-place-card,
-.medical-empty-state {
-    border: 1px solid #e8edf3;
-    border-radius: 14px;
-    background: #fff;
-    padding: 0.9rem;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    gap: 8px;
+    margin-top: 12px;
 }
 .medical-place-card {
     display: flex;
     justify-content: space-between;
-    gap: 1rem;
+    align-items: flex-start;
+    gap: 10px;
+    background: linear-gradient(135deg, #fafcff, #f5f9fd);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-s);
+    padding: 11px 13px;
+    font-size: 0.79rem;
+    transition: all var(--t);
 }
-.medical-place-card h6 {
-    margin-bottom: 0.25rem;
+.medical-place-card:hover {
+    box-shadow: var(--shadow-s);
+    border-color: rgba(26,111,196,.2);
+    transform: translateY(-1px);
 }
-.medical-place-meta {
-    color: #667085;
-    font-size: 0.88rem;
+.medical-place-card h6     { font-size: 0.81rem; font-weight: 600; margin-bottom: 2px; }
+.medical-place-meta        { color: var(--text-3); font-size: 0.75rem; }
+.medical-distance-badge    { white-space: nowrap; align-self: flex-start; font-size: 0.73rem; }
+.medical-empty-state       { color: var(--text-3); font-size: 0.79rem; text-align: center; padding: 14px; }
+
+/* ── Doctor mode appointment cards ── */
+.file-viewer-area .card {
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    background: linear-gradient(160deg, #ffffff 0%, #f9fbff 100%);
+    box-shadow: var(--shadow-s);
+    transition: transform var(--t), box-shadow var(--t), border-color var(--t);
+    animation: cardIn .3s var(--ease) both;
 }
-.medical-distance-badge {
-    white-space: nowrap;
-    align-self: flex-start;
+@keyframes cardIn {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+.file-viewer-area .card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(26,111,196,.2) !important;
+    box-shadow: var(--shadow);
+}
+.file-viewer-area .card-body {
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+}
+.file-viewer-area .card-body::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), var(--teal));
+    opacity: .4;
 }
 
-.page-hero {
-    padding: 3.5rem 0 2rem;
+/* Doctor mode filter tabs */
+#appt-filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+    margin: 10px 18px 12px;
+    padding: 10px;
+    flex-wrap: wrap;
 }
-.page-hero .eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    font-size: 0.78rem;
-    color: var(--accent);
-    font-weight: 800;
+#appt-filter-tabs .appt-filter-btn {
+    border-radius: 999px;
+    font-size: .77rem;
+    font-weight: 700;
+    letter-spacing: .01em;
+    padding: 5px 12px;
+    transition: all var(--t);
 }
-.feature-panel,
-.account-card,
-.assistant-card {
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+#appt-filter-tabs .appt-filter-btn.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(26,111,196,.25);
 }
-.assistant-chat-window {
-    min-height: 440px;
+
+#appointments-container {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+}
+#appointments-container .card       { margin-bottom: 0 !important; }
+#appointments-container .badge      { font-size:.71rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; border:1px solid rgba(14,28,47,.07); }
+#appointments-container .btn        { border-radius:8px; font-size:.77rem; }
+#appointments-container .text-muted.small { font-size:.75rem !important; }
+
+/* Doctor mode patient files panel */
+.current-file-box {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-s);
+    overflow: hidden;
+    animation: panelIn .3s var(--ease) both;
+}
+.current-file-box h6 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 10px 13px;
+    border-bottom: 1px solid var(--border-soft);
+    background: linear-gradient(135deg, #fafcff, #f5f9fd);
+    font-size: .8rem;
+    font-weight: 700;
+}
+#patient-files-panel {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-s);
+    padding: 8px;
+}
+#patient-files-panel .list-group     { gap: 7px; }
+#patient-files-panel .list-group-item {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-s) !important;
+    padding: 10px 12px;
+    background: linear-gradient(160deg, #fff 0%, #fbfdff 100%);
+    transition: all var(--t);
+}
+#patient-files-panel .list-group-item:hover {
+    border-color: rgba(26,111,196,.2);
+    box-shadow: var(--shadow-s);
+    transform: translateX(3px);
+}
+
+/* ═══════════════════════════════════════════════
+   RIGHT PANEL
+═══════════════════════════════════════════════ */
+.doctor-interaction-area {
+    width: var(--right-w);
+    flex-shrink: 0;
+    background: var(--white);
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    min-height: 0;
+}
+.doctor-interaction-area::-webkit-scrollbar { width: 3px; }
+.doctor-interaction-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Profile header — organic wave gradient ── */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 24px 18px 20px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg,
+        #0f3d7a 0%,
+        #1a6fc4 40%,
+        #0a9396 75%,
+        #0d7a6e 100%
+    );
+}
+.profile-header::before {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.07);
+    right: -70px; top: -70px;
+    pointer-events: none;
+}
+.profile-header::after {
+    content: '';
+    position: absolute;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.04);
+    left: -30px; bottom: -40px;
+    pointer-events: none;
+}
+
+.profile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,.35);
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,.22), 0 0 0 5px rgba(255,255,255,.08);
+    transition: transform var(--t);
+    position: relative; z-index: 1;
+}
+.profile-avatar:hover { transform: scale(1.04); }
+
+.profile-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.profile-name {
+    font-family: var(--font-head);
+    font-size: .94rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.profile-specialty {
+    font-size: 0.76rem;
+    color: rgba(255,255,255,.8);
+    margin-bottom: 6px;
+}
+.badge-status {
+    background: rgba(255,255,255,.18);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,.2);
+}
+.badge-exp {
+    background: rgba(255,255,255,.12);
+    color: rgba(255,255,255,.88);
+    font-size: 0.68rem;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,.12);
+}
+
+/* Profile bio */
+.profile-bio {
+    padding: 15px 17px;
+    border-bottom: 1px solid var(--border-soft);
+}
+.profile-bio p {
+    font-size: 0.81rem;
+    color: var(--text-2);
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* Profile actions */
+.profile-actions {
+    padding: 12px 17px;
+    border-bottom: 1px solid var(--border-soft);
+}
+.profile-actions .btn {
+    font-size: 0.82rem;
+    border-radius: var(--radius-s);
+    padding: 9px;
+    background: linear-gradient(135deg, var(--primary), var(--teal));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    transition: all var(--t);
+}
+.profile-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26,111,196,.35);
+}
+
+/* Booking form */
+#booking-form-section {
+    padding: 14px 17px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 0.81rem;
+}
+#booking-form-section h6 {
+    font-family: var(--font-head);
+    font-size: 0.81rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text-2);
+}
+#booking-form-section .form-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-2);
+    margin-bottom: 3px;
+}
+#booking-form-section .form-control {
+    font-size: 0.79rem;
+    border-color: var(--border);
+    border-radius: var(--radius-s);
+    transition: all var(--t);
+}
+#booking-form-section .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+#booking-submit-btn {
+    font-size: 0.81rem;
+    border-radius: var(--radius-s);
+    background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    transition: all var(--t);
+}
+#booking-submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sage);
+}
+#booking-feedback { font-size: 0.77rem; }
+
+/* Booking calendar */
+.booking-calendar {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.booking-calendar .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: linear-gradient(135deg, var(--primary-soft), var(--teal-soft));
+    border-bottom: 1px solid var(--border-soft);
+}
+.booking-calendar .cal-month-label {
+    font-family: var(--font-head);
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.booking-calendar .cal-nav {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: .75rem;
+    color: var(--text-2);
+    transition: all var(--t);
+}
+.booking-calendar .cal-nav:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.booking-calendar .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    padding: 6px 5px;
+    background: var(--border-soft);
+}
+.booking-calendar .cal-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    border-radius: 6px;
+    font-size: .73rem;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    background: var(--white);
+    color: var(--text-1);
+    transition: all var(--t);
+}
+.booking-calendar .cal-cell.dow-label {
+    font-weight: 700;
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-3);
+    cursor: default;
+    background: var(--bg-panel);
+}
+.booking-calendar .cal-cell.is-past   { color: var(--text-4); cursor: default; background: #fafbfc; }
+.booking-calendar .cal-cell.is-booked { color: var(--accent); font-weight: 700; }
+.booking-calendar .cal-cell.is-booked::after {
+    content: '';
+    position: absolute;
+    bottom: 3px; left: 50%;
+    transform: translateX(-50%);
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+.booking-calendar .cal-cell.is-selected {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(26,111,196,.3);
+}
+.booking-calendar .cal-cell:not(.dow-label):not(.is-past):hover {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+.booking-time-row {
+    background: var(--primary-soft);
+    border: 1px solid rgba(26,111,196,.15);
+    border-radius: var(--radius-s);
+    padding: 10px;
+    animation: panelIn .25s var(--ease) both;
+}
+
+/* AI assistant card */
+.ai-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 17px;
+    padding: 13px 14px;
+    background: linear-gradient(135deg,
+        rgba(26,111,196,.06),
+        rgba(10,147,150,.05));
+    border: 1px solid rgba(26,111,196,.12);
+    border-radius: var(--radius);
+    transition: all var(--t);
+}
+.ai-card:hover {
+    box-shadow: var(--shadow-s);
+    transform: translateY(-1px);
+    border-color: rgba(26,111,196,.2);
+}
+.ai-card-icon {
+    width: 38px; height: 38px;
+    border-radius: var(--radius-s);
+    background: linear-gradient(135deg, var(--primary), var(--teal));
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(26,111,196,.28);
+}
+.ai-card-body { flex: 1; min-width: 0; }
+.ai-card-title { font-size: 0.81rem; font-weight: 700; color: var(--text-1); }
+.ai-card-desc  { font-size: 0.72rem; color: var(--text-3); margin-top: 1px; }
+.ai-card .btn  {
+    font-size: 0.77rem;
+    border-radius: var(--radius-s);
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    transition: all var(--t);
+}
+.ai-card .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sage);
+}
+
+/* ═══════════════════════════════════════════════
+   CHAT VIEW
+═══════════════════════════════════════════════ */
+#chat-view {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+#chat-view.d-none { display: none !important; }
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #fafcff, #f4f8fc);
+    flex-shrink: 0;
+}
+.chat-with-name {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--text-1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-head);
+}
+
+.chat-messages-container {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* Calming background — like a soft foam ombre */
+    background: linear-gradient(160deg, #f0f6ff 0%, #edf8f4 100%);
+}
+.chat-messages-container::-webkit-scrollbar { width: 3px; }
+.chat-messages-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.message {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 0.81rem;
+    line-height: 1.57;
+    word-break: break-word;
+    animation: msgIn .25s var(--ease-spring) both;
+}
+@keyframes msgIn {
+    from { opacity:0; transform:translateY(8px) scale(.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.doctor-message {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    color: var(--text-1);
+    box-shadow: var(--shadow-xs);
+}
+.patient-message {
+    background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    align-self: flex-end;
+    box-shadow: 0 4px 14px rgba(26,111,196,.28);
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 6px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    background: rgba(255,255,255,.9);
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+    align-items: center;
+}
+.chat-input {
+    flex: 1;
+    font-size: 0.81rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    padding: 7px 14px;
+    font-family: var(--font-body);
+    background: var(--bg-panel);
+    transition: all var(--t);
+}
+.chat-input:focus {
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    outline: none;
+}
+.chat-send-btn {
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--primary), var(--teal));
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--t);
+    box-shadow: 0 3px 10px rgba(26,111,196,.25);
+}
+.chat-send-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 18px rgba(26,111,196,.4);
+}
+
+/* Image send button in chat */
+#chat-image-btn {
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--t);
+    font-size: .85rem;
+}
+#chat-image-btn:hover {
+    background: var(--teal-soft);
+    color: var(--teal);
+    border-color: var(--teal);
+    transform: scale(1.06);
+}
+
+/* ═══════════════════════════════════════════════
+   EMERGENCY MODAL
+═══════════════════════════════════════════════ */
+.emergency-modal {
+    border-radius: var(--radius-l);
+    border: 1px solid rgba(224,82,82,.12);
+    box-shadow: var(--shadow-xl);
+}
+.emergency-card {
+    border: 1px solid rgba(224,82,82,.1);
+    border-radius: var(--radius-s);
+    background: linear-gradient(160deg, #fff 0%, #fff8f8 100%);
+    padding: 13px 15px;
+    transition: all var(--t);
+}
+.emergency-card:hover {
+    box-shadow: 0 6px 18px rgba(224,82,82,.12);
+    transform: translateY(-2px);
+}
+.emergency-label  { font-size: 0.72rem; color: var(--text-3); margin-bottom: 2px; font-weight: 500; }
+.emergency-number {
+    font-family: var(--font-head);
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--danger);
+    line-height: 1.1;
+    letter-spacing: -1px;
+}
+.emergency-desc   { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; }
+
+/* ═══════════════════════════════════════════════
+   OTHER PAGES (account, assistant, paiement)
+═══════════════════════════════════════════════ */
+/* Allow scrolling on sub-pages (account, assistant, etc.) */
+html:has(body.page-shell) { overflow: auto; }
+
+.page-shell {
+    min-height: 100vh;
+    overflow: auto;
+    background:
+        radial-gradient(ellipse 70% 50% at 0% 0%,   rgba(26,111,196,.08), transparent 45%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(45,167,113,.07), transparent 40%),
+        radial-gradient(ellipse 40% 40% at 60% 50%,   rgba(10,147,150,.04), transparent 60%),
+        linear-gradient(160deg, #edf4fc 0%, #f2f8fd 50%, #ecf5f0 100%);
+}
+
+.page-shell .main-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 1px 0 var(--border), 0 4px 20px rgba(14,28,47,.06);
+}
+/* Lift page content above the body::before fixed gradient layer (z-index:0) */
+.page-shell main {
+    position: relative;
+    z-index: 1;
+}
+.page-shell .main-header .logo {
+    font-family: var(--font-head);
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.04em;
+    text-decoration: none;
+}
+
+.page-hero { padding: 2.6rem 0 1.6rem; }
+.page-hero .eyebrow {
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    font-size: 0.67rem;
+    color: var(--sage);
+    font-weight: 700;
+    background: rgba(45,167,113,.1);
+    padding: .24rem .64rem;
+    border-radius: 6px;
+    margin-bottom: .5rem;
+    font-family: var(--font-body);
+}
+.page-hero h2 {
+    font-family: var(--font-head);
+    font-size: clamp(1.3rem, 3vw, 1.9rem);
+    font-weight: 800;
+    color: var(--text-1);
+    letter-spacing: -0.02em;
+}
+
+.account-card, .assistant-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    background: var(--white);
+    box-shadow: var(--shadow);
+    transition: all var(--t-slow);
+}
+.account-card:hover { box-shadow: var(--shadow-l); transform: translateY(-2px); }
+.account-card h5 {
+    font-family: var(--font-head);
+    font-size: .91rem;
+    font-weight: 700;
+    color: var(--text-1);
+}
+
+/* Avatar upload */
+.avatar-wrapper {
+    position: relative;
+    width: 76px; height: 76px;
+    flex-shrink: 0;
+}
+.avatar-wrapper img {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border);
+    transition: all var(--t);
+}
+.avatar-wrapper img:hover { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); }
+.avatar-wrapper label {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--teal));
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: .72rem;
+    border: 2px solid #fff;
+    transition: all var(--t);
+    box-shadow: 0 2px 8px rgba(26,111,196,.3);
+}
+.avatar-wrapper label:hover { transform: scale(1.12); box-shadow: 0 4px 14px rgba(26,111,196,.4); }
+
+/* Info list */
+.info-list { list-style: none; padding: 0; margin: 0; }
+.info-list li {
+    display: flex;
+    flex-direction: column;
+    padding: .6rem 0;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: .83rem;
+}
+.info-list li:last-child { border-bottom: none; }
+.info-list .info-label {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: var(--text-3);
+    font-weight: 700;
+    margin-bottom: 2px;
+    font-family: var(--font-body);
+}
+.info-list .info-value { color: var(--text-1); font-weight: 600; }
+
+.plan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--sage-soft);
+    color: var(--sage-dark);
+    font-size: .74rem;
+    font-weight: 700;
+    padding: .28rem .68rem;
+    border-radius: 8px;
+    border: 1px solid rgba(45,167,113,.18);
+}
+
+/* ── Doctor availability calendar ─────────────────────── */
+.avail-calendar {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-s);
+    margin-top: 12px;
+}
+.avail-cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, var(--teal-soft), #e8f8f5);
+    border-bottom: 1px solid var(--border);
+}
+.avail-cal-date {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: .78rem;
+    color: var(--teal);
+    text-transform: capitalize;
+}
+.avail-cal-nav {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: .75rem;
+    color: var(--text-2);
+    transition: all var(--t);
+}
+.avail-cal-nav:hover { background: var(--teal-soft); color: var(--teal); border-color: var(--teal); }
+.avail-cal-slots {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 5px;
+    padding: 10px;
+}
+.avail-slot {
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 5px 4px;
+    border-radius: 7px;
+    text-align: center;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all var(--t);
+    font-family: var(--font-body);
+    line-height: 1.2;
+}
+.avail-slot.free {
+    background: var(--teal-soft);
+    color: var(--teal);
+    border-color: rgba(10,147,150,.2);
+}
+.avail-slot.free:hover {
+    background: var(--teal);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(10,147,150,.3);
+}
+.avail-slot.taken {
+    background: var(--bg-panel);
+    color: var(--text-4);
+    border-color: var(--border-soft);
+    cursor: default;
+    text-decoration: line-through;
+}
+.avail-cal-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 14px;
+    font-size: .8rem;
+    color: var(--text-3);
+}
+
+/* ── Doctor Agenda week grid ──────────────────────────────────────── */
+.agenda-week-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    overflow-x: auto;
+}
+.agenda-day-col {
+    min-width: 80px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.agenda-day-header {
+    background: var(--teal);
+    color: #fff;
+    text-align: center;
+    font-size: .75rem;
+    font-weight: 600;
+    padding: 6px 4px;
+    text-transform: capitalize;
+}
+.agenda-day-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+}
+.agenda-day-slots .avail-slot {
+    font-size: .73rem;
+    padding: 5px 4px;
+    text-align: center;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+/* Booked slot — shows patient first name + status indicator */
+.avail-slot.booked {
+    background: #e8f4fd;
+    color: #0d6efd;
+    border: 1.5px solid rgba(13,110,253,.3) !important;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 4px 2px;
+    line-height: 1.2;
+}
+.avail-slot.booked .slot-time   { font-size: .68rem; font-weight: 700; }
+.avail-slot.booked .slot-patient{ font-size: .62rem; color: #0a58ca; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+/* Map panel — no entrance animation (Leaflet must capture stable dimensions) */
+#ptab-map {
+    animation: none !important;
+}
+/* Map container must never be shrunk by flex layout when the facilities list appears */
+#nearby-map-container {
+    flex-shrink: 0;
+    min-height: 380px;
+}
+
+/* Map legend */
+.map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 6px 2px;
+}
+.map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .78rem;
+    color: var(--text-2);
+    font-weight: 500;
+}
+.map-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    flex-shrink: 0;
+}
+/* Nearby facilities list */
+.nearby-facility-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    background: var(--surface);
+    margin-bottom: 5px;
+    transition: background var(--t);
+}
+.nearby-facility-row:hover { background: var(--bg-panel); }
+.nearby-facility-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+.nearby-facility-name {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nearby-facility-type {
+    font-size: .73rem;
+    color: var(--text-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nearby-facility-dist {
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--teal);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.agenda-nav .avail-cal-nav { margin: 0; }
+
+/* ── Doctor appointments calendar ─────────────────────── */
+.dr-cal-wrap {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 4px;
+}
+.dr-cal-header {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: .88rem;
+    color: var(--text-1);
+    text-align: center;
+    margin-bottom: 8px;
+}
+.dr-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+.dr-cal-day-label {
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--text-3);
+    text-align: center;
+    padding: 2px 0 4px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.dr-cal-day {
+    position: relative;
+    text-align: center;
+    font-size: .78rem;
+    padding: 5px 2px;
+    border-radius: 6px;
+    color: var(--text-2);
+    cursor: default;
+    transition: background var(--t);
+}
+.dr-cal-day:hover { background: var(--primary-soft); }
+.dr-cal-day.today { background: var(--primary-soft); font-weight: 700; color: var(--primary); }
+.dr-cal-day.has-appt { font-weight: 600; }
+.dr-cal-dot {
+    display: block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    margin: 1px auto 0;
+}
+.dr-cal-dot.confirmed { background: var(--sage); }
+.dr-cal-dot.pending   { background: var(--warning); }
+
+/* Doctor appointments list */
+.dr-appt-day-header {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-3);
+    padding: 10px 4px 4px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 4px;
+}
+.dr-appt-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    transition: box-shadow var(--t);
+}
+.dr-appt-item:hover { box-shadow: var(--shadow); }
+.dr-appt-time {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--primary-soft);
+    padding: 2px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.btn-xs {
+    font-size: .72rem;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-weight: 600;
+}
+
+/* Assistant page */
+.assistant-card             { padding: 0; overflow: hidden; }
+.assistant-chat-window {
+    min-height: 480px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+.assistant-chat-header {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #fafcff, #f4f8fc);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.assistant-chat-header h5 {
+    font-family: var(--font-head);
+    font-size: .91rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-1);
 }
 .assistant-message-stream {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem;
+    padding: 1.1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: .75rem;
+    background: linear-gradient(160deg, #f0f6ff 0%, #edf8f4 100%);
 }
+.assistant-message-stream::-webkit-scrollbar { width: 3px; }
+.assistant-message-stream::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .assistant-message {
     max-width: 78%;
-    padding: 0.85rem 1rem;
-    border-radius: 16px;
-    line-height: 1.5;
+    padding: .85rem 1.05rem;
+    border-radius: 18px;
+    line-height: 1.6;
+    word-break: break-word;
+    font-size: .86rem;
+    animation: msgIn .25s var(--ease-spring) both;
 }
 .assistant-message.user {
     margin-left: auto;
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--teal));
     color: #fff;
-    border-bottom-right-radius: 6px;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 14px rgba(26,111,196,.28);
 }
 .assistant-message.bot {
     margin-right: auto;
-    background: #edf5ff;
-    border-bottom-left-radius: 6px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    color: var(--text-1);
+    border-bottom-left-radius: 4px;
+    box-shadow: var(--shadow-xs);
+}
+.assistant-input-area {
+    padding: .9rem 1rem;
+    border-top: 1px solid var(--border);
+    background: rgba(255,255,255,.9);
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+}
+.assistant-input-area .input-group { gap: 8px; }
+.assistant-input-area .form-control {
+    border-radius: 999px;
+    border-color: var(--border);
+    font-size: .86rem;
+    font-family: var(--font-body);
+    background: var(--bg-panel);
+    padding: 8px 16px;
+    transition: all var(--t);
+}
+.assistant-input-area .form-control:focus {
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.assistant-input-area .btn {
+    border-radius: 999px;
+    font-size: .86rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--primary), var(--teal));
+    border: none;
+    color: #fff;
+    padding: 8px 20px;
+    transition: all var(--t);
+}
+.assistant-input-area .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-blue);
 }
 
-.emergency-modal {
-    border-radius: 22px;
-    border: 1px solid rgba(220, 53, 69, 0.18);
-    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.18);
+/* Bootstrap form overrides — calming focus states */
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
 }
-.emergency-number-card {
-    border: 1px solid rgba(220, 53, 69, 0.14);
-    border-radius: 16px;
-    background: linear-gradient(180deg, #fff 0%, #fff8f8 100%);
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+    border: none;
+    font-weight: 600;
+    transition: all var(--t);
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-blue);
+}
+.btn-outline-primary {
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 600;
+    transition: all var(--t);
+}
+.btn-outline-primary:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+.btn-success {
+    background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+    border: none;
+    font-weight: 600;
+    transition: all var(--t);
+}
+.btn-success:hover {
+    background: linear-gradient(135deg, var(--sage-dark), #166340);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sage);
+}
+.badge.bg-success { background: var(--sage) !important; }
+.badge.bg-primary { background: var(--primary) !important; }
+
+/* Toast notification */
+#dashboard-toast {
+    border-radius: var(--radius) !important;
+    background: linear-gradient(135deg, #0e1c2f, #1a3050) !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    box-shadow: var(--shadow-l) !important;
+    backdrop-filter: blur(20px);
 }
 
-/* --- Responsive Adjustments --- */
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — tablet (≤ 991px)
+═══════════════════════════════════════════════ */
 @media (max-width: 991px) {
-    /* Stack columns for mobile/tablet */
-    .main-content-row {
-        flex-direction: column;
-    }
-    .doctor-messenger-nav {
+    html, body { overflow: auto; }
+    .app-wrapper { height: auto; overflow: visible; }
+
+    /*
+     * CRITICAL FIX — prevent flex collapse:
+     * Desktop uses flex:1 1 0 / min-height:0 so children fill 100vh.
+     * When .app-wrapper switches to height:auto there is no defined
+     * parent height, so flex:1 resolves to 0 and content vanishes.
+     * Reset every collapsing flex child to flex:none / height:auto.
+     */
+    .main-dashboard-card {
+        flex: none;
         height: auto;
-        border-bottom: 1px solid #eee;
+        flex-direction: column;
+        margin: 8px;
+        border-radius: var(--radius-l);
+        overflow: visible;
+    }
+    .main-content-row {
+        flex: none;
+        height: auto;
+        flex-direction: column;
+        overflow: visible;
+        min-height: 0;
+    }
+
+    /* Left sidebar */
+    .doctor-messenger-nav {
+        flex: none;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
     }
     .vertical-doctor-list {
-        display: flex;
-        overflow-x: auto; /* Horizontal scroll for doctor list */
+        flex: none;
+        flex-direction: row;
+        overflow-x: auto;
         overflow-y: hidden;
+        padding: 6px;
         height: auto;
-        padding-bottom: 10px;
+        min-height: 0;
     }
-    .doctor-nav-card {
+    .doctor-nav-card { flex-shrink: 0; min-width: 160px; border-left: none; border-bottom: 3px solid transparent; border-radius: var(--radius-s); }
+    .doctor-nav-card.active-doctor { border-left: none; border-bottom-color: var(--primary); }
+    .reports-card { margin-top: 0; border-top: none; border-left: 1px solid var(--border); }
+
+    /* Middle panel */
+    .file-viewer-area {
+        flex: none;
+        height: auto;
+        min-height: 0;
+        min-width: 0;
+        overflow-y: visible;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+    /* Patient panels must not try to fill a zero-height flex parent */
+    .patient-panel {
+        flex: none;
+        height: auto;
+        min-height: 0;
+        overflow-y: visible;
+    }
+
+    /* Right panel */
+    .doctor-interaction-area {
+        flex: none;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        overflow-y: visible;
+    }
+
+    /* Chat inside right panel can keep its own scroll */
+    #chat-view { min-height: 400px; }
+
+    .file-iframe-container { height: 260px; resize: none; }
+    .medical-place-card { flex-direction: column; }
+    .assistant-message { max-width: 92%; }
+    .avail-cal-slots { grid-template-columns: 1fr 1fr 1fr 1fr; }
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — phone (≤ 576px)
+═══════════════════════════════════════════════ */
+@media (max-width: 576px) {
+
+    /* ── Header ─────────────────────────────────── */
+    /* Allow the header to grow so nav buttons can wrap to a second line */
+    .main-header {
+        height: auto;
+        min-height: 50px;
+        padding: 6px 10px;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+    .header-logo { flex-shrink: 0; }
+    .header-logo-icon { font-size: 1rem; }
+    .header-logo-text { font-size: .88rem; letter-spacing: -.3px; }
+
+    /* Nav row — fills the line, wraps gracefully */
+    .header-nav {
+        flex-wrap: wrap;
+        gap: 3px;
+        /* On very narrow screens push nav to its own row */
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .btn-ghost {
+        font-size: .67rem;
+        padding: 5px 8px;
+        gap: 3px;
+        border-radius: var(--radius-s);
+        /* Minimum touch target height */
+        min-height: 32px;
+    }
+    /* Emergency button stays prominent */
+    #emergency-btn {
+        order: -1;
+        background: rgba(224,82,82,.08);
+        border-color: rgba(224,82,82,.2);
+        color: var(--danger);
+    }
+    #emergency-btn:hover {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: #fff;
+    }
+
+    /* ── Dashboard card ─────────────────────────── */
+    .main-dashboard-card { margin: 4px; border-radius: 12px; }
+    .main-content-row { gap: 0; }
+
+    /* ── Left sidebar — compact horizontal scroll ── */
+    .sidebar-header { padding: 7px 10px 5px; gap: 5px; }
+    .sidebar-header h6 { font-size: .66rem; }
+    .vertical-doctor-list { padding: 4px 6px; gap: 5px; height: auto; }
+    .doctor-nav-card { min-width: 118px; padding: 6px 8px; gap: 7px; }
+    .doctor-avatar { width: 30px; height: 30px; }
+    .doctor-nav-icon { width: 30px; height: 30px; font-size: .85rem; }
+    .doctor-nav-card .d-block { font-size: .74rem; }
+    .doctor-nav-card small { font-size: .67rem; }
+
+    /* ── Patient tab bar — horizontal scroll, no scrollbar ── */
+    .patient-tab-bar {
+        padding: 0 6px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;          /* Firefox */
+    }
+    .patient-tab-bar::-webkit-scrollbar { display: none; }
+    .ptab {
+        font-size: .72rem;
+        padding: 10px 10px;
+        gap: 4px;
+        white-space: nowrap;
         flex-shrink: 0;
-        min-width: 250px; 
-        margin-right: 10px;
-        border-bottom: 4px solid transparent;
-        border-left: none;
     }
-    .active-doctor {
-        border-bottom: 4px solid var(--primary);
-        border-left: none;
-    }
-    .file-viewer-area, .doctor-interaction-area {
-        height: auto;
-        border-right: none !important;
-        border-bottom: 1px solid #eee;
-    }
-    .medical-place-card {
+
+    /* ── Patient panels ─────────────────────────── */
+    .patient-panel { padding: 10px; gap: 10px; }
+    .panel-heading { gap: 7px; }
+    .panel-heading-icon { font-size: .95rem; }
+    .panel-heading-title { font-size: .88rem; }
+
+    /* ── PDF viewer ─────────────────────────────── */
+    .viewer-card-header { padding: 8px 10px; gap: 6px; }
+    .viewer-file-name { font-size: .73rem; }
+    .zoom-slider { width: 56px; }
+    .zoom-label { font-size: .72rem; min-width: 28px; }
+    .btn-close-viewer { padding: 3px 6px; font-size: .7rem; }
+    .file-iframe-container { height: 190px; resize: none; }
+
+    /* ── File history ───────────────────────────── */
+    .file-history-section { border-radius: var(--radius-s); }
+    .section-title-row {
         flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px 12px;
     }
-    .assistant-message {
-        max-width: 92%;
+    .section-title { font-size: .77rem; }
+    .btn-primary-soft { font-size: .73rem; padding: 4px 10px; align-self: flex-start; }
+    .file-list .list-group-item { padding: 8px 12px; font-size: .78rem; }
+    .file-list .list-group-item .d-block { font-size: .78rem; }
+    .file-list .list-group-item small { font-size: .7rem; }
+    .file-empty-state { padding: 22px 12px; font-size: .77rem; }
+
+    /* ── Nearby map ─────────────────────────────── */
+    #nearby-map-container { min-height: 220px; }
+    .map-legend { gap: 6px 10px; padding: 4px 0; }
+    .map-legend-item { font-size: .71rem; }
+    .map-dot { width: 10px; height: 10px; }
+    .nearby-card { padding: 12px; }
+    .nearby-card-header { gap: 8px; }
+    .medical-place-card { flex-direction: column; gap: 5px; padding: 9px 11px; }
+    .medical-place-card h6 { font-size: .78rem; }
+    .medical-place-meta { font-size: .72rem; }
+    .nearby-facility-row { padding: 6px 8px; gap: 8px; }
+    .nearby-facility-name { font-size: .78rem; }
+    .nearby-facility-type { font-size: .7rem; }
+    .nearby-facility-dist { font-size: .72rem; }
+
+    /* ── Agenda week grid ───────────────────────── */
+    .agenda-week-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .agenda-day-header { font-size: .7rem; padding: 5px 2px; }
+    .agenda-day-slots { padding: 4px; gap: 3px; }
+    .agenda-day-slots .avail-slot { font-size: .66rem; padding: 4px 2px; }
+
+    /* ── Doctor appointments list ───────────────── */
+    #appt-filter-tabs { margin: 8px 10px 10px; padding: 8px; gap: 5px; }
+    #appt-filter-tabs .appt-filter-btn { font-size: .72rem; padding: 4px 10px; }
+    #appointments-container { padding: 0 10px 10px; gap: 8px; }
+
+    /* ── Availability calendar ──────────────────── */
+    .avail-calendar { margin-top: 8px; }
+    .avail-cal-header { padding: 6px 8px; }
+    .avail-cal-date { font-size: .7rem; }
+    .avail-cal-slots { grid-template-columns: 1fr 1fr; gap: 4px; padding: 8px; }
+    .avail-slot { font-size: .7rem; padding: 6px 2px; }
+
+    /* ── Booking calendar ───────────────────────── */
+    .booking-calendar .cal-header { padding: 6px 8px; }
+    .booking-calendar .cal-month-label { font-size: .74rem; }
+    .booking-calendar .cal-cell { height: 25px; font-size: .69rem; }
+    .booking-time-row { padding: 8px; font-size: .78rem; }
+    #booking-form-section { padding: 10px 14px; }
+    #booking-form-section h6 { font-size: .78rem; }
+    #booking-form-section .form-label { font-size: .72rem; }
+    #booking-form-section .form-control { font-size: .76rem; }
+
+    /* ── Right panel / Doctor profile ───────────── */
+    .doctor-interaction-area { padding: 0; min-height: 0; }
+    .profile-header { padding: 14px 14px 16px; gap: 11px; }
+    .profile-avatar { width: 48px; height: 48px; border-width: 2px; }
+    .profile-name { font-size: .86rem; }
+    .profile-specialty { font-size: .71rem; margin-bottom: 5px; }
+    .badge-status, .badge-exp { font-size: .63rem; }
+    .profile-bio { padding: 11px 14px; }
+    .profile-bio p { font-size: .77rem; line-height: 1.6; }
+    .profile-actions { padding: 10px 14px; gap: 6px; }
+    .profile-actions .btn { font-size: .77rem; padding: 8px; }
+
+    /* ── Chat view ──────────────────────────────── */
+    #chat-view { min-height: 320px; }
+    .chat-header { padding: 8px 12px; }
+    .chat-with-name { font-size: .78rem; gap: 5px; }
+    .chat-messages-container { padding: 10px; gap: 7px; }
+    .message { max-width: 88%; padding: 8px 12px; font-size: .78rem; line-height: 1.5; }
+    .chat-input-area { padding: 7px 10px; gap: 5px; }
+    .chat-input { font-size: .78rem; padding: 6px 12px; }
+    .chat-send-btn { width: 32px; height: 32px; font-size: .82rem; }
+    #chat-image-btn { width: 30px; height: 30px; font-size: .78rem; }
+
+    /* ── AI assistant card ──────────────────────── */
+    .ai-card { padding: 10px 12px; gap: 8px; margin: 10px 14px; }
+    .ai-card-icon { width: 32px; height: 32px; font-size: .85rem; }
+    .ai-card-title { font-size: .77rem; }
+    .ai-card-desc { font-size: .69rem; }
+    .ai-card .btn { font-size: .71rem; padding: 5px 10px; }
+
+    /* ── Emergency modal ────────────────────────── */
+    .emergency-modal { border-radius: var(--radius); }
+    .emergency-number { font-size: 1.45rem; letter-spacing: -.5px; }
+    .emergency-card { padding: 11px 13px; }
+
+    /* ── Toast ──────────────────────────────────── */
+    #dashboard-toast {
+        right: 10px !important;
+        left: 10px !important;
+        bottom: 14px !important;
+        width: auto !important;
+        max-width: none !important;
     }
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — very small phones (≤ 380px)
+═══════════════════════════════════════════════ */
+@media (max-width: 380px) {
+    /* Shrink the logo text to reclaim nav space */
+    .header-logo-text { font-size: .78rem; }
+    .header-logo-icon { font-size: .88rem; }
+    .btn-ghost { font-size: .62rem; padding: 4px 6px; min-height: 30px; }
+
+    /* Tighter card margin */
+    .main-dashboard-card { margin: 2px; border-radius: 8px; }
+
+    /* Doctor contacts narrower cards */
+    .doctor-nav-card { min-width: 104px; padding: 5px 7px; }
+    .doctor-avatar { width: 26px; height: 26px; }
+
+    /* Tiny tab text */
+    .ptab { font-size: .67rem; padding: 9px 8px; }
+
+    /* Agenda: single column on very narrow screens */
+    .agenda-week-grid { grid-template-columns: 1fr; }
+
+    /* Profile header single-column on tiny phones */
+    .profile-header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; }
+    .profile-avatar { width: 44px; height: 44px; }
+
+    /* Ultra-compact pdf viewer */
+    .file-iframe-container { height: 160px; }
+
+    /* Map gets minimum usable height */
+    #nearby-map-container { min-height: 180px; }
 }

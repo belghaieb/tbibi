@@ -11,13 +11,16 @@
 </head>
 <body>
     <div class="payment-container">
-        <div class="card p-4 p-md-5 shadow-lg transition-hover" style="max-width: 520px; width: 100%;">
-            <h3 class="text-center logo mb-2 text-primary-custom">Régler votre abonnement</h3>
-            <p class="text-center text-muted small mb-4">
-                Finalisez votre abonnement en toute sécurité.
-            </p>
+        <div class="card">
 
-            <div class="border rounded p-3 mb-3 bg-light">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <div class="logo mb-1">TBIBI</div>
+                <p class="text-muted small mb-0">Finalisez votre abonnement en toute sécurité.</p>
+            </div>
+
+            <!-- Plan summary -->
+            <div class="plan-summary">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Formule</span>
                     <strong id="pay-plan-label">—</strong>
@@ -26,29 +29,31 @@
                     <span class="text-muted">Code</span>
                     <span id="pay-plan-code">—</span>
                 </div>
-                <hr>
+                <hr class="my-2">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="fw-bold">Total TTC</span>
-                    <span class="h5 mb-0 text-primary-custom" id="pay-amount">—</span>
+                    <span class="h5 mb-0" id="pay-amount">—</span>
                 </div>
             </div>
 
+            <!-- Credit card visual -->
             <div class="credit-card-display mb-4">
                 <div class="chip"></div>
-                <div class="card-number-display mb-3" id="display-card-number">•••• •••• •••• ••••</div>
+                <div class="card-number-display" id="display-card-number">•••• •••• •••• ••••</div>
                 <div class="card-details-row">
                     <div>
-                        <small class="d-block">Titulaire</small>
+                        <small>Titulaire</small>
                         <span class="card-holder-name" id="display-holder">NOM PRÉNOM</span>
                     </div>
                     <div>
-                        <small class="d-block">Expire</small>
+                        <small>Expire</small>
                         <span class="card-expiry-date" id="display-expiry">MM/AA</span>
                     </div>
                 </div>
                 <i class="bi bi-credit-card-2-front card-type-icon"></i>
             </div>
 
+            <!-- Form -->
             <form id="fake-payment-form" novalidate>
                 <div class="mb-3">
                     <label class="form-label" for="card-name">Nom sur la carte</label>
@@ -56,9 +61,10 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="card-number">Numéro de carte</label>
-                    <input type="text" class="form-control" id="card-number" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000" autocomplete="cc-number">
+                    <input type="text" class="form-control" id="card-number" inputmode="numeric" maxlength="19"
+                           placeholder="0000 0000 0000 0000" autocomplete="cc-number">
                 </div>
-                <div class="row g-2 mb-3">
+                <div class="row g-2 mb-4">
                     <div class="col-6">
                         <label class="form-label" for="card-expiry">Expiration</label>
                         <input type="text" class="form-control" id="card-expiry" maxlength="5" placeholder="MM/AA" autocomplete="cc-exp">
@@ -68,15 +74,20 @@
                         <input type="text" class="form-control" id="card-cvc" maxlength="4" inputmode="numeric" placeholder="000" autocomplete="cc-csc">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary-custom w-100 mb-3 fw-bold" id="pay-submit-btn">
-                    <i class="bi bi-lock-fill me-2"></i>Valider
+                <button type="submit" class="btn btn-primary-custom w-100 mb-3" id="pay-submit-btn">
+                    <i class="bi bi-lock-fill me-2"></i>Valider le paiement
                 </button>
+                <div class="secure-badge">
+                    <i class="bi bi-shield-check-fill"></i>
+                    Paiement simulé — aucune donnée bancaire réelle traitée
+                </div>
             </form>
 
-            <p class="text-center mb-0">
-                <a href="login.html" class="text-decoration-none text-muted small me-2">Déjà un compte ? Connexion</a>
-                <span class="text-muted">·</span>
-                <a href="../index.html" class="text-decoration-none text-muted small ms-2">Accueil</a>
+            <hr class="my-3">
+            <p class="text-center mb-0 small text-muted">
+                <a href="login.html" class="me-2">Déjà un compte ?</a>
+                <span>·</span>
+                <a href="index.html" class="ms-2">Accueil</a>
             </p>
         </div>
     </div>

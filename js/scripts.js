@@ -120,17 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. Event Handlers ---
 
-    // Doctor Card Clicks
-    doctorNavCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const doctorId = card.dataset.doctorId;
-            if (doctorId) {
-                updateDoctorView(doctorId);
-            } else if (card.dataset.action === 'reports') {
-                alert('Afficher la section des rapports généraux.');
-            }
-        });
-    });
+    // Doctor Card Clicks — handled by dashboard-page.js
 
     // Action Button Clicks
     window.handleAction = function(actionType) {

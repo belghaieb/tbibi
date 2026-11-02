@@ -134,13 +134,18 @@ async function loadAccountData() {
     currentUser = {
         ...currentUser,
         ...userPayload,
-        subscriptionCode: currentUser?.subscriptionCode || userPayload.subscriptionCode || null
+        subscriptionCode: currentUser?.subscriptionCode || userPayload.subscriptionCode || null,
+        // Never overwrite a saved avatarUrl with null from the server
+        avatarUrl: userPayload.avatarUrl || currentUser?.avatarUrl || null
     };
     localStorage.setItem('tbibi_user', JSON.stringify(currentUser));
 
     updateProfileForm(userPayload);
     updateSidebar(currentUser, currentUser?.subscriptionCode);
     updateSubscription(currentUser?.subscriptionCode);
+    // Show the user's current avatar instead of the default logo
+    const avatarEl = document.getElementById('account-avatar');
+    if (avatarEl && userPayload.avatarUrl) avatarEl.src = userPayload.avatarUrl;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -173,6 +178,38 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(error);
         showAlert(error.message || 'Erreur de chargement du compte.', 'danger');
     });
+
+    // Avatar upload
+    const avatarInput = document.getElementById('avatar-upload-input');
+    const avatarImg   = document.getElementById('account-avatar');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', async () => {
+            const file = avatarInput.files[0];
+            if (!file) return;
+            const fd = new FormData();
+            fd.append('avatar', file);
+            fd.append('userId', currentUser?.id);
+            try {
+                const res = await apiFetch(`/uploads/avatar?userId=${encodeURIComponent(currentUser?.id)}`, {
+                    method: 'POST',
+                    body: fd
+                });
+                if (!res) return;
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.message || 'Upload impossible.');
+                // Update the photo on screen immediately
+                if (avatarImg && data.avatarUrl) avatarImg.src = data.avatarUrl;
+                // Save new avatarUrl into localStorage so it persists
+                currentUser = { ...currentUser, avatarUrl: data.avatarUrl };
+                localStorage.setItem('tbibi_user', JSON.stringify(currentUser));
+                showAlert('Photo de profil mise à jour.');
+            } catch (err) {
+                showAlert(err.message || 'Erreur lors du téléchargement.', 'danger');
+            } finally {
+                avatarInput.value = '';
+            }
+        });
+    }
 
     document.getElementById('save-profile-btn').addEventListener('click', async () => {
         const payload = {

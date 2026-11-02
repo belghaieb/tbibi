@@ -151,10 +151,13 @@ document.addEventListener('DOMContentLoaded', function () {
         await fetch(`${API_BASE_URL}/uploads/patient-medical-files`, { method: 'POST', body: data });
     };
 
+    const subscriptionSection = document.getElementById('subscriptionSection');
+
     roleSelect?.addEventListener('change', function () {
         if (roleSelect.value === 'doctor') {
             doctorDocsBlock?.classList.remove('d-none');
             patientFilesBlock?.classList.add('d-none');
+            subscriptionSection?.classList.add('d-none');
             resetPatientFiles();
             doctorDocsModal?.show();
             return;
@@ -164,11 +167,13 @@ document.addEventListener('DOMContentLoaded', function () {
             doctorDocsBlock?.classList.add('d-none');
             resetDoctorDocs();
             patientFilesBlock?.classList.remove('d-none');
+            subscriptionSection?.classList.remove('d-none');
             return;
         }
 
         doctorDocsBlock?.classList.add('d-none');
         patientFilesBlock?.classList.add('d-none');
+        subscriptionSection?.classList.remove('d-none');
         resetDoctorDocs();
         resetPatientFiles();
     });
@@ -294,10 +299,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             localStorage.setItem('tbibi_user', JSON.stringify(payload));
 
-            // Redirect to payment page so user can confirm their plan
-            // paiement.html will call /checkout-session and then redirect to main.html
-            const price = resolvePlanPrice(selectedSubscription);
-            window.location.href = `paiement.html?plan=${selectedSubscription}&price=${price}`;
+            // Doctors go directly to dashboard (no payment required)
+            // Patients go to the payment page to confirm their plan
+            if (roleSelect.value === 'doctor') {
+                window.location.href = 'main.html';
+            } else {
+                const price = resolvePlanPrice(selectedSubscription);
+                window.location.href = `paiement.html?plan=${selectedSubscription}&price=${price}`;
+            }
         } catch (error) {
             console.error(error);
             showError(error.message || 'Une erreur est survenue pendant l\'inscription.');
