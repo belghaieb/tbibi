@@ -1,0 +1,22 @@
+﻿# Workspace/editor noise
+.idea/
+.vscode/
+.claude/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+~$*.docx
+
+# Built artifacts
+**/target/
+**/node_modules/
+
+# Legacy / non-runtime folders
+archives/
+copie de backend/
+resources/diagrams/
+
+# Git metadata
+**/.git/

@@ -1,0 +1,317 @@
+TBIBI BACKEND WIRING PLAN (SPRING)
+Version: 1.0
+Date: 2026-04-02
+
+Goal
+- Implement the backend little by little for the existing frontend without rewriting UI.
+- Keep frontend IDs/structure stable; replace static/demo data with API responses.
+
+Current Frontend Reality (important)
+- Frontend pages already exist and currently run with static/mock data.
+- Dashboard doctor cards and doctor profile text are static.
+- Medical record iframe/history are static.
+- Nearby services search currently runs in browser demo mode.
+- Signup is frontend validation only; patient optional medical file upload UI exists.
+- Emergency numbers are hardcoded in modal.
+- Login still has demo redirect behavior.
+
+IMPORTANT CONSTRAINTS
+- Do NOT force frontend redesign while wiring backend.
+- Replace static data endpoint by endpoint.
+- Keep contracts simple JSON first, then harden validation/security.
+
+==================================================
+PHASE 0 - PROJECT BASELINE (SPRING BOOT)
+==================================================
+1) Confirm stack
+- Spring Boot 3.x
+- Spring Web
+- Spring Validation
+- Spring Data JPA
+- MySQL (already in pom runtime)
+- Optional later: Spring Security + JWT
+
+2) Configure environments
+- application.properties profiles:
+  - dev (local)
+  - prod (future)
+- Add DB URL, username, password for local MySQL.
+- Enable SQL migration tool (recommended Flyway or Liquibase).
+
+3) CORS for frontend
+- Allow frontend origin (the host you serve html from).
+- Methods: GET, POST, PUT, PATCH, DELETE.
+
+Deliverable
+- Backend runs cleanly with DB connection and basic /api/health endpoint.
+
+==================================================
+PHASE 1 - DATA MODEL (MINIMUM)
+==================================================
+Create initial entities and migrations:
+
+1) users
+- id (UUID or BIGINT)
+- first_name
+- last_name
+- email (unique)
+- phone
+- password_hash
+- role (PATIENT, DOCTOR, ADMIN)
+- created_at
+- updated_at
+
+2) subscriptions
+- id
+- code (BASIC, PREMIUM)
+- label
+- price
+- active
+
+3) user_subscriptions
+- id
+- user_id
+- subscription_id
+- starts_at
+- ends_at
+- status (ACTIVE, EXPIRED, CANCELED)
+
+4) doctor_profiles
+- id
+- user_id (FK users, role=DOCTOR)
+- specialty
+- experience_years
+- bio
+- avatar_url
+- verification_status (PENDING, VERIFIED, REJECTED)
+
+5) medical_files
+- id
+- patient_id (FK users)
+- uploaded_by_user_id
+- file_name
+- content_type
+- storage_key (or local path)
+- category (REPORT, PRESCRIPTION, IMAGING, OTHER)
+- created_at
+
+6) doctor_verification_documents
+- id
+- doctor_user_id
+- doc_type (ID_CARD, DIPLOMA, LICENSE)
+- storage_key
+- created_at
+
+7) optional later for chat
+- conversations, messages
+
+Deliverable
+- SQL migrations + JPA entities + repositories compiled and tested.
+
+==================================================
+PHASE 2 - AUTH + ACCOUNT ENDPOINTS
+==================================================
+1) POST /api/auth/register
+Request
+{
+  "firstName": "...",
+  "lastName": "...",
+  "email": "...",
+  "phone": "+216...",
+  "password": "...",
+  "role": "PATIENT|DOCTOR",
+  "subscriptionCode": "BASIC|PREMIUM"
+}
+Response
+- 201 created user summary
+
+2) POST /api/auth/login
+Request
+{
+  "email": "...",
+  "password": "..."
+}
+Response
+- if security implemented: JWT + profile summary
+- else temporary session token
+
+3) GET /api/account/me
+- Return user profile + active subscription.
+
+4) PUT /api/account/me
+- Update profile fields (firstName, lastName, phone, address if added).
+
+5) PUT /api/account/password
+- Update password with currentPassword/newPassword.
+
+Deliverable
+- Frontend login/signup can switch from demo redirects to real API calls.
+
+==================================================
+PHASE 3 - SIGNUP FILE UPLOADS
+==================================================
+Required because frontend already supports:
+- Doctor verification docs (required for doctor role)
+- Patient medical files (optional for patient role)
+
+Endpoints
+1) POST /api/uploads/doctor-docs (multipart/form-data)
+Fields
+- doctorId (or infer from auth)
+- idCard (file)
+- diploma (file)
+- license (file)
+
+2) POST /api/uploads/patient-medical-files (multipart/form-data)
+Fields
+- patientId (or infer from auth)
+- files[] (multiple)
+
+Storage choice
+- Start local file storage (dev): /uploads/...
+- Keep abstraction so later move to S3/Cloud/Azure Blob.
+
+Validation
+- accepted content types: pdf/jpg/jpeg/png (+ dcm if desired)
+- max size per file
+- antivirus scan (optional later)
+
+Deliverable
+- Signup process can upload files and persist metadata in DB.
+
+==================================================
+PHASE 4 - DASHBOARD DATA (REPLACE STATIC)
+==================================================
+1) GET /api/doctors
+- Return list used by left doctor cards.
+
+Example response
+[
+  {
+    "id": "dr-123",
+    "name": "Dr. ...",
+    "specialty": "Cardiologue",
+    "status": "ONLINE|OFFLINE",
+    "experience": "11 Ans Expérience",
+    "avatarUrl": "..."
+  }
+]
+
+2) GET /api/doctors/{id}
+- Return detailed profile for right summary panel.
+
+3) GET /api/patients/me/medical-files
+- Return file history list for middle panel.
+
+4) GET /api/patients/me/medical-files/{fileId}/download
+- Return file stream for iframe/display.
+
+Deliverable
+- Remove hardcoded doctor names/photos/descriptions and static file history.
+
+==================================================
+PHASE 5 - NEARBY MEDICAL SERVICES
+==================================================
+Current frontend uses direct Overpass call in browser.
+Move to backend endpoint:
+
+GET /api/nearby-medical?lat=...&lng=...&radius=3000
+Response
+[
+  {
+    "name": "...",
+    "type": "Pharmacie|Hôpital|Clinique|Cabinet médical",
+    "distance": 450,
+    "street": "...",
+    "city": "..."
+  }
+]
+
+Implementation
+- Backend can proxy Overpass API first.
+- Add timeout/retry and simple cache (recommended 2-5 min).
+
+Deliverable
+- Frontend no longer depends on browser direct external call.
+
+==================================================
+PHASE 6 - ASSISTANT (OPTIONAL EARLY, FULL LATER)
+==================================================
+1) POST /api/assistant/chat
+Request
+{
+  "message": "..."
+}
+Response
+{
+  "reply": "..."
+}
+
+Implementation option A
+- Rule-based first (quick win).
+Implementation option B
+- Spring AI integration later.
+
+Deliverable
+- assistant page becomes backend-driven.
+
+==================================================
+PHASE 7 - EMERGENCY METADATA (OPTIONAL)
+==================================================
+GET /api/meta/emergency-numbers
+- Serve emergency numbers from backend config/table.
+
+Deliverable
+- Emergency modal content centrally managed.
+
+==================================================
+SECURITY + QUALITY CHECKLIST (RUN IN PARALLEL)
+==================================================
+- Hash passwords with BCrypt.
+- Never store plaintext passwords.
+- Validate all request DTOs.
+- Add global exception handler (consistent error JSON).
+- Add API pagination when listing bigger datasets.
+- Add audit fields (createdAt/updatedAt).
+- Add role checks (doctor/patient/admin).
+- Add integration tests for critical endpoints.
+
+Standard error response format
+{
+  "timestamp": "...",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation failed",
+  "path": "/api/..."
+}
+
+==================================================
+RECOMMENDED IMPLEMENTATION ORDER (SMALLEST RISK)
+==================================================
+1) Phase 0 + 1
+2) Auth register/login + account me
+3) Dashboard doctors endpoints
+4) Medical files endpoints (list + download)
+5) Signup uploads endpoints
+6) Nearby proxy endpoint
+7) Assistant endpoint
+8) Emergency metadata endpoint
+
+==================================================
+FRONTEND SWITCH NOTES FOR THE PERSON DOING BACKEND
+==================================================
+- Keep response keys stable and explicit.
+- Coordinate field names before merging.
+- Do not block frontend waiting for perfect auth/security; ship incrementally but safely.
+- For each endpoint, provide one sample JSON response for frontend wiring.
+
+==================================================
+DONE CRITERIA
+==================================================
+- No static doctor profile content in frontend.
+- No static medical record history in frontend.
+- Signup uploads persist file metadata in DB.
+- Login/signup/account flows use API.
+- Nearby services and assistant call backend endpoints.
+
+END OF FILE
